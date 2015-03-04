@@ -1,0 +1,674 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+第二十章  sql
+列顺序、别名影响结果集 as可以省略
+SELECT column_name AS alias_name,SUM(OrderPrice)
+FROM table_name AS alias_name
+WHERE city LIKE 's%' 
+    AND city LIKE 'L_n_on' 
+    OR city IN (C1,C2) 
+    AND price BETWEEN 10 AND 20
+GROUP BY column_name #结合合计函数，根据列对结果集进行分组
+HAVING SUM(OrderPrice)<2000 #WHERE无法与聚合函数一起使用
+ORDER BY column_name,column_name ASC|DESC
+LIMIT 2,5 #记录从第三个位置开始返回，共返回5个
+
+select sex,id from u4 group by 1 desc;
+select sex,age from u4 group by 1 having age>45;
+having的age必须在select中出现，或者having用聚合函数
+select sex from u4 group by 1 having count(id)>2;
+
+select * from u4 order by age desc,id desc;
+
+
+
+无关子查询与相关子查询
+子查询的执行的次数依赖于外部查询，外部查询每执行一行，子查询执行一次
+
+INNER JOIN 与 JOIN 相同 取两表相匹配的数据
+FULL OUTER JOIN 只要其中一个表中存在匹配，则返回行
+LEFT JOIN 从左表返回所有行，没有匹配则为NULL
+RIGHT JOIN 和LEFT JOIN 相反
+SELECT column_name(s)
+FROM table1
+INNER JOIN table2
+(LEFT JOIN table2)
+(FULL OUTER JOIN table2
+ON table1.column_name=table2.column_name;
+
+UNION 操作符用于合并两个或多个 SELECT 语句的结果集
+列出所有在中国和美国的不同的雇员名
+SELECT E_Name FROM Employees_China
+UNION
+SELECT E_Name FROM Employees_USA
+
+CREATE TABLE Orders
+(
+Id_O int NOT NULL UNIQUE CHECK (Id_P>0),
+PRIMARY KEY (Id_O),
+FOREIGN KEY (Id_P) REFERENCES Persons(Id_P)
+City varchar(255) DEFAULT 'SANDNES'
+)
+
+视图让用户只看到他们所需要的数据
+CREATE VIEW view_name AS
+SELECT column_name(s)
+FROM table_name
+WHERE condition
+
+INSERT INTO table_name (column1,column2,column3,...)
+VALUES (value1,value2,value3,...);
+
+存储过程：为了以后的使用而保存多条sql语句
+sql语句执行的时候要先编译，然后执行。存储过程就是编译好了的一些sql语句
+触发器是特殊的存储过程，在特点数据库活动发生时自动执行
+比如插入时，把列改为大写
+CREATE TRIGGER a
+ON table
+FOR INSERT,UPDATE
+AS
+UPDATE table
+SET state=Upper(state)
+WHERE table.id = inserted.id
+
+事物处理：
+BEGIN TRANSACTION
+...
+SAVEPOINT delete1
+...
+COMMIT TRANSACTION
+...
+ROLLBACK TRANSACTION delete1
+
+游标
+DECLARE a CURSOR
+FOR
+SELECT *
+OPEN CURSOR a
+LOOP
+FETCH a INTO b
+EXIT WHEN a%NOTFOUND
+END LOOP
+CLOSE a
+
+
+
+UPDATE table_name
+SET column1=value1,column2=value2,...
+WHERE some_column=some_value;
+
+DELETE FROM table_name
+WHERE some_column=some_value;
+
+
+MySQL
+索引用于快速找出在某个列中有一特定值的行
+大多数MySQL索引(PRIMARY KEY、UNIQUE、INDEX和FULLTEXT)在B树中存储。只是空间列类型的索引使用R-树，并且MEMORY表还支持hash索引。
+
+一般来说，列的值唯一性太小，不适合建索引（怎样叫太小？一半说来，同值的数据超过表的百分之15，那就没必要建索引了）
+太长的列，可以选择只建立部分索引，（如：只取前十位做索引）
+更新非常频繁的数据不适宜建索引
+
+
+
+mysql -uroot -proot -h127.0.0.1 
+配置文件my.ini
+启动服务 net start mysql
+关闭服务 net stop mysql
+create(alter/drop) database huang
+数据类型:
+整数 tinyint smallint int 等
+浮点数
+日期时间(Year Time Data Datetime TimeStamp) 这个类型使用比较少，因为涉及到跨区的问题
+字符类型 char varchar tinytext text mediumtext enum set
+
+数据表：
+父表和子表必须使用相同的存储引擎InnoDB
+default-storage-engine=INNODB
+
+外键列和参照列，如果是字符长度可以不同，如果是整数长度和符号位都要相同
+外键列和参照列必须创建索引，如果外键列不存在索引，mysql自动创建
+
+create table tb (
+id smallint unsigned auto_increment primary key,
+username varchar(20) not null unique key,
+sex enum('1','2','3') default 3,
+age tinyint unsigned not null ,
+salary float(8,2) unsigned);
+
+show columns from tb;
+
+insert tb values('tom',25,3834.34);
+insert tb (username,salary) values('john',3243.34);
+
+select * from tb;
+父表
+create table p (
+id smallint unsigned auto_increment primary key,
+pname varchar(20) not null);
+
+子表 两个索引 一个主键索引 一个外键索引
+create table u2 (
+id smallint unsigned auto_increment primary key,
+username varchar(10) not null,
+pid smallint unsigned,
+foreign key (pid) references p (id) on delete cascade);
+
+【
+ PRIMARY KEY (`id`),
+ KEY `pid` (`pid`), 系统自己创建
+】
+
+约束：
+primary key
+unique key
+foreign key
+not null
+default
+
+外键约束的参照操作
+cascade 父表删除或更新时自动删除或更新子表中匹配的行
+set null 父表删除或更新时设置子表中为null
+restrict 拒绝对父表删除或更新
+no action 标准sql关键字，mysql
+
+添加删除列，添加多列不能指定after,first
+alter table u1 add age tinyint unsigned not null default 10 after pid;
+alter table u1 drop age;
+
+添加约束
+alter table u3 add {constraint pk_u3_id} primary key (id);
+alter table u3 add unique (username);
+ALTER TABLE u3 ADD INDEX index_name(column_list) 
+alter table u3 add foreign key (pid) references p (id);
+alter table u3 alter age set default 15;
+
+删除默认约束
+alter table u3 alter age drop default;
+
+删除主键约束
+alter table u3 drop primary key;
+
+删除唯一约束
+alter table u3 drop index username;
+show index from u3\G;以网格形式查看约束
+
+删除外键约束
+show create table u3;
+其中CONSTRAINT `u3_ibfk_1` FOREIGN KEY (`pid`) REFERENCES `p` (`id`)
+alter table u3 drop foreign key u3_ibfk_1
+删除外键约束的索引
+alter table u3 drop index pid
+
+修改字段名称、数据结构、位置
+alter table u3
+modify id smallint unsigned not null first
+
+alter table u3
+change pid p_id tinyint unsigned not null;
+change除了修改列定义外还可以修改列名称
+
+少修改表名和列名，因为有视图等
+alter table u3 rename u_3
+rename table u_3 to u3
+
+让id保持递增
+insert u3 values(NULL,'b',123);
+insert u3 values(default,'b',123);
+
+insert test(username)
+select username from u4;
+
+create table goods_brands(
+brand_id smallint unsigned primary key auto_increment,
+brand_name varchar(40) not null
+)
+select brand_name from goods group by brand_name
+
+可以使用子查询
+insert u4 set username='t',passwd=456;
+【
+子查询是指嵌套在查询内部，且必须出现在括号内
+子查询可以返回标量、一行、一列、子查询
+外层查询可以是 select insert update set do
+(sql是结构化查询语言，所以查询是指sql语句)
+
+对平均值的小数点后两位进行四舍五入
+select id,name,price from goods where price >=(select round(avg(price),2) from goods);  
+
+any,some,all修饰比较运算符子查询
+select id,name,price from goods where price >=all(select price from goods where cate='abc');
+== any 和in相同
+<> all 和not in相同
+】
+
+
+单表更新
+update u4
+set age=age+id,sex=0
+where id%2=0;
+
+表的参照关系
+{[inner|cross] join | {left|right} [outer] join}
+inner join内连接
+left [outer] join 左外连接
+一般用on来设定连接条件，用where进行结果集记录的过滤
+
+多表更新
+update goods as g
+inner join goods_brands as b
+on g.brand_name = b.brand_name
+set g.brand_name = b.brand_id;
+
+alter table goods
+change goods_cate cate_id smallint unsigned not null,
+change brand_name brand_id smallint unsigned not null;
+
+select goods_id,goods_name,cate_name,brand_name
+from goods as g
+inner join goods_brands as b on b.brand_id = g.brand_id
+inner join goods_cates as c on c.cate_id = g.brand_id
+
+查找所有分类及其父类
+SELECT s.type_id,s.type_name,p.type_name
+FROM tdb_goods_types AS s
+LEFT JOIN tdb_goods_types AS p
+ON s.parent_id = p.type_id;
+
+select p.type_id,p.type_name,count(c.type_name)
+from tdb_goods_types as p
+left join tdb_goods_types as c
+on c.parent_id = p.type_id 
+group by p.type_name#没有这行，count会导致只有一行数据
+order by p.type_id;
+
+事实的外键(区别于物理的外键foreign key)
+
+
+单表删除
+delete u4 from u4 where id=5;
+
+多表删除
+delete t1 from tdb_goods as t1
+left join (select goods_id,goods_name from tdb_goods group by goods_name having count(goods_name) > 1) as t2
+on t1.goods_name = t2.goods_name
+where t1.goods_id > t2.goods_id;
+  
+字符函数
+select contact(first_name,last_name) as fullname from test;
+select contact_ws(' ',first_name,last_name) as fullname from test;
+format(12334.123,2)
+lower upper length ltrim rtrim
+trim(leading '?' from  '??MySQL???');
+trim(trailing '?' from '??MySQL???');
+trim(both '?' from '??MySQL???');
+substring('MySQL',1,2);
+substring('MySQL',1);
+replace('?My?sql?','?','');
+left('sdfs',2) right
+[not] like
+select * from t where name like "%1%%" escape '1';
+
+date_add('2014-3-4',interval 365 day);
+
+自定义函数
+函数体由合法的sql语句构成，如果是符合结果，用begin,end
+create function f2(n1 smallint unsigned,n2 smallint unsigned)
+returns float(10,2) unsigned
+return (n1+n2)/2;
+
+delimiter //
+
+create function addu(username varchar(20))
+returns int unsigned
+begin
+insert test(username) values(username);
+return last_insert_id();
+end//
+
+存储过程
+存储过程经常对表进行操作，而很少用函数对表进行操作
+存储过程可以返回多个值，而函数只能返回一个值
+存储过程一般独立执行，而函数一般作为其他sql语句的组成部分
+经常把常用的操作封装成存储过程以提高效率
+
+sql语句和控制语句的预编译集合，以一个名称存储并作为一个单元处理
+in表示参数必须在调用存储过程时指定
+out 可以被存储过程改变，并且可以返回
+inout 调用时指定，可以改变和返回
+
+存储过程定义完成后不能修改过程体
+
+create procedure sp1() select version();
+call sp1;
+
+参数名不能和数据表中记录名相同
+create procedure func(IN p_id int unsigned,OUT cnt int unsigned)
+begin
+delete tdb_goods_types from tdb_goods_types where type_id = p_id;
+select count(type_id) from tdb_goods_types INTO cnt;
+end//
+调用call func(15,@nums)
+select @nums
+set @nums = 7 
+@nums用户变量，对于本客户端有效
+
+ROW_COUNT()返回修改的记录总数
+
+create procedure removeByPidReturn(IN pid int unsigned,OUT delnum int unsigned,OUT outnum int unsigned)
+begin
+delete tdb_goods_types from tdb_goods_types where parent_id=pid;
+select ROW_COUNT() into delnum;
+select count(type_id) from tdb_goods_types into outnum;
+end//
+
+存储引擎（表类型）
+mysql讲数据以不同的技术存储在文件或内存中，这个技术称为存储引擎，包括存储机制、索引技巧、锁定水平
+mysql支持以下存储引擎MyISAM,InnoDB,Memory,CSV,Archive
+并发控制
+共享锁(读锁) 排他锁(写锁)
+锁的颗粒，指锁定时的单位。锁会增长系统开销
+表锁，开销最小的锁策略
+行锁，开销最大(可能对每个行分别加锁)的锁策略，支持最大并发操作
+
+事务处理
+为了保证数据库的完整性
+原子性 一致性 隔离性 持久性 acid
+
+外键
+保证数据一致性的策略
+
+索引：对数据表中一列或多列的值进行排序的一种结构
+快速访问数据表的特定信息
+普通索引，唯一索引，全文索引，btree索引，hash索引
+InnoDB：最大支持64TB，支持事务安全，支持索引，支持行锁，支持外键
+MyISAM:最大支持256TB，不支持事务安全，支持索引，支持表锁，支持数据压缩，不支持外键
+Memory：存储在内存中，不支持事务安全，支持索引，支持表锁，不支持外键
+create table tp1(
+id smallint unsigned
+)engine = MyISAM;
+alter table tp1 engine = InnoDB;
+
+数据库优化
+避免出现页面访问错误：由于数据库连接timeout产生5xx错误，慢查询造成页面无法加载，由于事务阻塞(可能因为锁)造成数据无法提交
+增加数据库的稳定性
+
+结构良好的sql及有效的索引，数据库表结构(根据范式)，系统配置(打开文件数。mysql是基于文件的，每查询一个表都要打开一些文件)，硬件(cpu的选择,大内存,io设备的选择)
+
+sql语句优化
+通过mysql的慢查询日志对有效率问题的sql进行监控
+时间、主机信息、执行信息(查询时间，锁时间等)、执行时间戳、sql内容
+对慢查询日志进行分析的工具
+mysqldumpslow -t 3 log执行次数、时间 sql语句
+
+
+pt-query-digest log 比上面的具体
+查询总数，不同的查询数量，查询时间范围
+执行时间和锁时间(最大，最小 95%)，具体sql的时间
+关注点：
+1、查询次数多且每次查询占用时间长的sql
+2、io大的sql：分析中的Rows examine项，扫描行数越多，io消耗越大
+3、未命中索引的sql：分析中Rows examine和Rows Send的对比，如果扫描行数远远大于发送的行数，说明命中率并不高
+
+使用explain查询sql的执行计划
+
+explain select * from tdb_goods_types where type_id>2 and type_id<5;
+本例中type:range,possible_keys:primary,key:primary,key_len:2，extra:Using where; Using index
+返回的type显示连接使用了何种类型，从最好到最差const(对主键和唯一索引的查找)/eq_reg(主键和唯一索引的范围查找)/ref(基于索引的查找)/range(索引的范围查找)/index(索引的扫描)/ALL(表扫描)
+key为实际使用的索引
+key_len：mysql查询以页为单位，长度越小，索引数量越多，效果越好
+extra:
+using filesort 使用了外部文件需要优化
+using temporary使用临时表需要优化
+
+max查询可以通过覆盖索引(完全通过索引来找到记录)来查询优化
+explain select max(goods_price) from tdb_goods\G;
+table: tdb_goods
+type: ALL
+rows: 20
+Extra: 
+
+create index idx_price on tdb_goods(goods_price);
+explain select max(goods_price) from tdb_goods\G;
+table: NULL 不查询表，因为索引是顺序排列的，max是最后一个
+type: NULL
+rows: NULL
+Extra: Select tables optimized away
+
+select count(*),count(id) from t;
+count(id)不包含id为null的行，*包含所有行
+select count(goods_price=6888.0 or null) from tdb_goods;
+结果是价格为6888.0的行数
+select count(goods_price=6888.0) from tdb_goods;
+结果是所有行数
+
+把子查询优化优化成连接join查询
+select * from t where t.id in (select t1.tid from t1)
+需要注意的是join会出现重复数据(因为一对多的关系)
+用distinct来去重复
+select distinct t.id from t join t1 on t.id = t1.tid;
+
+groupby查询用到临时表和文件排序
+select actor.name,count(*)
+from film_actor
+join actor on film_actor.actor_id = actor.actor_id
+group by film_actor.actor_id
+改写：先查询得到id和数量的表，再和id与name的表join
+用了索引取代临时表和文件排序
+select actor.name,c.cnt
+from actor join (
+select actor_id,count(*) as cnt
+from film_actor
+group by actor_id
+) as c
+on film_actor.actor_id = actor.actor_id
+
+limit常用于分页处理，时常伴随order by，会使用filesorts导大量io问题
+select goods_id,goods_name from tdb_goods order by goods_name limit 200,5;
+会使用文件排序(看执行计划(用explain))
+优化:
+1、使用有索引的或者主键进行order by
+这样有个问题，从大数字开始时，扫描行(205行)也会增加
+2、记录上次返回的主键，在下次查询中使用主键过滤
+select goods_id,goods_name from tdb_goods where goods_id >=200 and goods_id<210  order by goods_id limit 0,5;
+扫描行为5行
+
+索引
+如果索引包含所有列，则称之为覆盖索引
+重复索引是指相同的列以相同的顺序建立的同类型索引，导致效率变低，比如primary key和unique同时索引
+冗余索引是指多个索引的前缀相同，或者联合索引中包含了主键索引(因为InnoDB每个索引都会包含主键)，比如id primary key和key(name,id)
+搜索冗余索引
+From statistics a join statistics b ON
+a.seq_in_index = b.seq_in_index and a.column_name = b.column_name
+where a.seq_in_index = 1 and a.index_name <> b.index_name
+或者使用工具 pt-duplicate-key-checker
+
+
+在where从句，group by从句，order by从句，on从句中出现的列
+索引字段越小越好
+离散度大的列放到联合索引的前面
+select * from payment where staff_id = 2 and customer_id = 584;
+select count(distinct customer_id),count(distinct staff_id) from payment;
+值越大离散度越大，可选择性越高
+建立联合索引index(customer_id,staff_id)
+
+通过慢查询 pt-index-usage log分析索引的使用情况，以便删除
+
+表结构优化
+使用简单的数据结构。int比varchar处理简单
+尽可能使用not null定义字段，允许null需要额外字段来存储
+尽量少用text,非用不可时考虑分表，提高主表效率
+
+用int类型进行时间存储，使用from_unixtime(int)和unix_timestamp('2014-1-1 13:23:12')
+用bigint存储ip地址,使用inet_aton() inet_ntoa()
+
+范式化设计
+第三范式：要求数据表中不存在非关键字段对任意候选关键字段的传递函数依赖
+解决：数据冗余 写入异常
+
+反范式化：以空间换取时间，因为关联表会影响效率
+
+表的垂直拆分
+把不常用字段放入一个表
+把大字段单独放入一个表
+把常用字段放入一个表
+
+表的水平拆分
+按id进行hash，比如mod(id,n)分成n张表
+跨分区表的数据查询
+统计及后台报表操作
+
+操作系统优化：tcp和打开文件限制
+配置文件优化：my.cnf my.ini
+innodb_buffer_pool_size 缓冲池大小，总内存的75%
+innodb_buffer_pool_instances 缓冲池个数
+innodb_log_buffer_size 日志缓冲区大小，存每秒事务的日志
+inoodb_flush_log_at_trx_commit 刷新到磁盘的方式，0每一秒才把变更刷新，1每次提交刷新到磁盘，2每次提交刷新到缓冲区，默认1安全
+innodb_read_io_threads innodb_write_io_threads
+读写io线程的数目
+innodb_file_per_table默认off，所有表使用共享表空间，on分成多个文件
+innodb_stats_on_metadata刷新表的统计信息以便优化器使用正确的索引，设为off，在show时不刷新，人为刷新
+
+配置向导工具 percona
+
+
+
+
+
+第二十一章 SQLite
+SQLite是一种嵌入式数据库，它的数据库就是一个文件
+Python就内置了SQLite3
+conn = sqlite3.connect('test.db')
+cursor = conn.cursor()
+cursor.execute('select * from user where id=?', '1')
+使用Cursor对象执行insert，update，delete语句时，执行结果由rowcount返回影响的行数，就可以拿到执行结果。
+使用Cursor对象执行select语句时，通过featchall()可以拿到结果集。结果集是一个list，每个元素都是一个tuple，对应一行记录
+values = cursor.fetchall()
+cursor.close()
+conn.close()
+
+1、reserved LOCK
+RESERVED锁意味着进程将要对数据库进行写操作。某一时刻只能有一个RESERVED 
+RESERVED锁和SHARED锁可以共存，而且可以对数据库加新的SHARED锁。
+
+2、pending LOCK
+LOCK意味着进程已经完成缓存中的数据修改，并想立即将更新写入磁盘
+它将等待此时已经存在的读锁事务完成，但是不允许对数据库加新的SHARED LOCK
+
+3、exclusive LOCK
+SQLite只有库级排斥锁（EXCLUSIVE LOCK）,
+
+SQLite有三种不同的事务类型.事务可以从DEFERRED，IMMEDIATE或者EXCLUSIVE，一个事务的类型在BEGIN命令中指定：
+BEGIN [ DEFERRED | IMMEDIATE | EXCLUSIVE ] TRANSACTION；
+
+deferred事务,不获取任何锁，直到它需要锁的时候。
+Immediate事务会试着获取RESERVED LOCK。如果成功，BEGIN IMMEDIATE保证没有别的连接可以写数据库。但是，别的连接可以对数据库进行读操作，但是RESERVED LOCK会阻止其它的连接BEGIN IMMEDIATE或者BEGIN EXCLUSIVE命令，SQLite会返回SQLITE_BUSY错误。
+这时你就可以对数据库进行修改操作，但是你不能提交，当你COMMIT时，会返回SQLITE_BUSY错误，这意味着还有其它的读事务没有完成，得等它们执行完后才能提交事务。
+Exclusive事务会试着获取对数据库的EXCLUSIVE锁。这与IMMEDIATE类似，但是一旦成功，EXCLUSIVE事务保证没有其它的连接，所以就可对数据库进行读写操作了。
+
+SQLAlchemy
+把关系数据库的表结构映射到对象上
+ORM技术：Object-Relational Mapping
+ORM框架的作用就是把数据库表的一行记录与一个对象互相做自动转换
+
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "database-learning.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+</body>
+</html>

@@ -53,9 +53,11 @@ Nagle算法只允许一个未被ACK的包存在于网络。当然如果对端ACK
 websocket
 websocket则和一般的socket一样，使得浏览器和服务器建立了一个双工的通道。
 websocket通信需要先有个握手的过程，使得协议由http转变为webscoket协议，然后浏览器和服务器就可以利用这个socket来通信了
+```
 Upgrade: websocket
 Connection: Upgrade
 Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+```
 payload-len这项，表示数据的长度有多少，如果小于126，那么payload-len就是数据的长度，如果是126那么接下来2个字节是数据长度，如果是127表示接下来8个字节是数据长度，然后后面会有四个字节的mask，真实数据要由payload-data和mask做异或才能得到
 
 
@@ -87,9 +89,9 @@ close(sock_fd)会把sock_fd的内部计数器减1
 
 
 ## web
-urllib.quote(string[, safe])：对字符串进行编码
-urllib.quote_plus(string [ , safe ] ) ：与urllib.quote类似，但这个方法用'+'来替换' '，而quote用'%20'来代替' '
-urllib.urlencode(query[, doseq])：将dict或者包含两个元素的元组列表转换成url参数。例如 字典{'name': 'dark-bull', 'age': 200}将被转换为"name=dark-bull&age=200"
+`urllib.quote(string[, safe])`：对字符串进行编码
+`urllib.quote_plus(string [ , safe ] )` ：与urllib.quote类似，但这个方法用'+'来替换' '，而quote用'%20'来代替' '
+`urllib.urlencode(query[, doseq])`：将dict或者包含两个元素的元组列表转换成url参数。例如 字典{'name': 'dark-bull', 'age': 200}将被转换为"name=dark-bull&age=200"
 
 BaseHTTPRequestHandler，解析起始行和http头部，看是put还是post方法，对http版本的处理
 比如持久连接，在1.0上用keep-alive打开，而1.1上默认打开，关闭需要close
@@ -111,6 +113,7 @@ start_response也是一个callable，接受两个必须的参数，status（HTTP
 内部调用start_response并将响应消息的消息体返回
 
 ## 关于 web.py
+```
 @get('/')
 def index():
     return '<h1>Index page</h1>'
@@ -121,7 +124,7 @@ def check_manage_url(next):
     if current_user.isAdmin():
         return next()
 wsgi.add_interceptor(check_manage_url)
-
+```
 路由类参数：
 web路由（判断是静态路由还是动态路由，如果是动态路由提供match方法）
 web方法：get post
@@ -134,9 +137,9 @@ add_url，生产路由实例，用dict存储静态路由与路由实例，用lis
 最后的包装函数
 
 
-wsgi(env, start_response)
+`wsgi(env, start_response)`
 Request类，根据env
-利用cgi.FieldStorage(fp=self._environ['wsgi.input'], environ=self._environ)
+利用`cgi.FieldStorage(fp=self._environ['wsgi.input'], environ=self._environ)`
 获取头部和内容
 拦截函数：根据路由，判断是否被intercept 
 原函数：根据方法，先匹配静态路由，最后匹配动态路由，找到需要调用的函数。
@@ -177,6 +180,7 @@ SimpleQueue队列，它是实现了锁机制的pipe，内部去掉了buffer，�
 
 ###第二节 mmap
 除了管道方式，multiprocessing还提供通过mmap共享内存的方式来进行数据通信。虽然共享内存的value，array自带RLock锁，但是只有一次读操作或一次写操作才是安全的，像+=这种操作，就需要获取自带的可重入锁get_lock来保护数据。
+```
 def func(val):
 	for i in range(10):
         with val.get_lock():
@@ -187,25 +191,31 @@ def func(val):
 	    processList = [Process(target=func, args=(v,)) for i in range(10)]
 	    for p in processList: p.start()
 	    for p in processList: p.join()
+```
 
 ###第三节 server
 最后还提供了server的方式来共享数据，有一个manager进程，负责管理实际的对象，对象存储在该进程空间。采用RPC通信的方式来处理数据，需要访问数据的进程，创建一个proxy对象，连接manager进程，把需要调用的函数参数pickle后，传递给manager进程。
 通信可以基于管道也可以基于socket所以可以分布式处理。因为分布式所以提供了身份验证功能。
 但是proxy对象中如果存在可变对象，内部的修改是不能传播到其他进程的。解决方法是将可变对象也作为参数传入。
+```
 def f(ns,x,y):
     x.append(1)
     ns.x= x
 manager = multiprocessing.Manager()
 ns = manager.Namespace()
 p = multiprocessing.Process(target=f, args=(ns,ns.x))
+```
+
 因为manager对象仅能传播对一个可变对象本身所做的修改，如有一个manager.list()对象，管理列表本身的任何更改会传播到所有其他进程。但是，如果容器对象内部还包括可修改的对象，则内部可修改对象的任何更改都不会传播到其他进程。
 
 管理的对象没有自带锁。
+```
 def testFunc(nsum,cc):
     for i in xrange(10):
         nsum.value += cc
 nsum = manager.Value('tmp', 0)
 t = Process(target=testFunc, args=(nsum,1,))
+```
 这个nsum值会不可测，最粗暴的解决方法需要进程锁
 manager.RLock()
 multiprocessing.RLock() 下面这个锁的速度比上面慢
@@ -233,6 +243,7 @@ pdb.set_trace()
 这里需要两个管道文件p_in、p_out，运行脚本之前，
 使用命令mkfifo p_in p_out同时建立
 这还未完成，还需要个外部程序来跟管道交互：
+```
 cat debug_cmd.sh
 #!/bin/bash
 cat p_out &
@@ -240,6 +251,8 @@ while [[ 1 ]]; do
     read -e cmd
     echo $cmd>p_in
 done
+```
+
 fifo管道在写入端未传入数据时，读取端是阻塞的（反之亦然），所以cat的显示挂在后台，当调试的程序结束后，管道传出EOF，cat就自动退出了。
 
 
@@ -406,11 +419,14 @@ Nagle算法只允许一个未被ACK的包存在于网络。当然如果对端ACK
 
 <p>websocket
 websocket则和一般的socket一样，使得浏览器和服务器建立了一个双工的通道。
-websocket通信需要先有个握手的过程，使得协议由http转变为webscoket协议，然后浏览器和服务器就可以利用这个socket来通信了
-Upgrade: websocket
+websocket通信需要先有个握手的过程，使得协议由http转变为webscoket协议，然后浏览器和服务器就可以利用这个socket来通信了</p>
+
+<pre><code>Upgrade: websocket
 Connection: Upgrade
 Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-payload-len这项，表示数据的长度有多少，如果小于126，那么payload-len就是数据的长度，如果是126那么接下来2个字节是数据长度，如果是127表示接下来8个字节是数据长度，然后后面会有四个字节的mask，真实数据要由payload-data和mask做异或才能得到</p>
+</code></pre>
+
+<p>payload-len这项，表示数据的长度有多少，如果小于126，那么payload-len就是数据的长度，如果是126那么接下来2个字节是数据长度，如果是127表示接下来8个字节是数据长度，然后后面会有四个字节的mask，真实数据要由payload-data和mask做异或才能得到</p>
 
 <h2 id="io">同步 异步 io</h2>
 
@@ -440,9 +456,9 @@ close(sock<em>fd)会把sock</em>fd的内部计数器减1
 
 <h2 id="web">web</h2>
 
-<p>urllib.quote(string[, safe])：对字符串进行编码
-urllib.quote_plus(string [ , safe ] ) ：与urllib.quote类似，但这个方法用'+'来替换' '，而quote用'%20'来代替' '
-urllib.urlencode(query[, doseq])：将dict或者包含两个元素的元组列表转换成url参数。例如 字典{'name': 'dark-bull', 'age': 200}将被转换为"name=dark-bull&amp;age=200"</p>
+<p><code>urllib.quote(string[, safe])</code>：对字符串进行编码
+<code>urllib.quote_plus(string [ , safe ] )</code> ：与urllib.quote类似，但这个方法用'+'来替换' '，而quote用'%20'来代替' '
+<code>urllib.urlencode(query[, doseq])</code>：将dict或者包含两个元素的元组列表转换成url参数。例如 字典{'name': 'dark-bull', 'age': 200}将被转换为"name=dark-bull&amp;age=200"</p>
 
 <p>BaseHTTPRequestHandler，解析起始行和http头部，看是put还是post方法，对http版本的处理
 比如持久连接，在1.0上用keep-alive打开，而1.1上默认打开，关闭需要close
@@ -464,16 +480,17 @@ start<em>response也是一个callable，接受两个必须的参数，status（H
 
 <h2 id="webpy">关于 web.py</h2>
 
-<p>@get('/')
+<pre><code>@get('/')
 def index():
-    return '</p><h1>Index page</h1>'
-wsgi.add_url(index)<p></p>
+    return '&lt;h1&gt;Index page&lt;/h1&gt;'
+wsgi.add_url(index)
 
-<p>@interceptor('/manage/')
-def check<em>manage</em>url(next):
-    if current<em>user.isAdmin():
+@interceptor('/manage/')
+def check_manage_url(next):
+    if current_user.isAdmin():
         return next()
-wsgi.add</em>interceptor(check<em>manage</em>url)</p>
+wsgi.add_interceptor(check_manage_url)
+</code></pre>
 
 <p>路由类参数：
 web路由（判断是静态路由还是动态路由，如果是动态路由提供match方法）
@@ -486,9 +503,9 @@ add_url，生产路由实例，用dict存储静态路由与路由实例，用lis
 如果拦截匹配，则用拦截函数包装原函数
 最后的包装函数</p>
 
-<p>wsgi(env, start<em>response)
+<p><code>wsgi(env, start_response)</code>
 Request类，根据env
-利用cgi.FieldStorage(fp=self.</em>environ['wsgi.input'], environ=self._environ)
+利用<code>cgi.FieldStorage(fp=self._environ['wsgi.input'], environ=self._environ)</code>
 获取头部和内容
 拦截函数：根据路由，判断是否被intercept 
 原函数：根据方法，先匹配静态路由，最后匹配动态路由，找到需要调用的函数。
@@ -532,41 +549,46 @@ SimpleQueue队列，它是实现了锁机制的pipe，内部去掉了buffer，�
 
 <h3 id="mmap">第二节 mmap</h3>
 
-<p>除了管道方式，multiprocessing还提供通过mmap共享内存的方式来进行数据通信。虽然共享内存的value，array自带RLock锁，但是只有一次读操作或一次写操作才是安全的，像+=这种操作，就需要获取自带的可重入锁get<em>lock来保护数据。
-def func(val):
+<p>除了管道方式，multiprocessing还提供通过mmap共享内存的方式来进行数据通信。虽然共享内存的value，array自带RLock锁，但是只有一次读操作或一次写操作才是安全的，像+=这种操作，就需要获取自带的可重入锁get_lock来保护数据。</p>
+
+<pre><code>def func(val):
     for i in range(10):
-        with val.get</em>lock():</p>
-
-<h1 id="propertysetgetgetsetrlock">property的set或者get操作，本身是加锁操作，但是由于+=操作，是一次get+一次set操作，所以需要额外的一次加锁，而RLock锁是支持重入的，所以没有问题</h1>
-
-<pre><code>        val.value += 1
-if __name__ == '__main__':
-    v = Value('i', 0)                           #使用value来共享内存 
-    processList = [Process(target=func, args=(v,)) for i in range(10)]
-    for p in processList: p.start()
-    for p in processList: p.join()
+        with val.get_lock():
+#property的set或者get操作，本身是加锁操作，但是由于+=操作，是一次get+一次set操作，所以需要额外的一次加锁，而RLock锁是支持重入的，所以没有问题
+            val.value += 1
+    if __name__ == '__main__':
+        v = Value('i', 0)                           #使用value来共享内存 
+        processList = [Process(target=func, args=(v,)) for i in range(10)]
+        for p in processList: p.start()
+        for p in processList: p.join()
 </code></pre>
 
 <h3 id="server">第三节 server</h3>
 
 <p>最后还提供了server的方式来共享数据，有一个manager进程，负责管理实际的对象，对象存储在该进程空间。采用RPC通信的方式来处理数据，需要访问数据的进程，创建一个proxy对象，连接manager进程，把需要调用的函数参数pickle后，传递给manager进程。
 通信可以基于管道也可以基于socket所以可以分布式处理。因为分布式所以提供了身份验证功能。
-但是proxy对象中如果存在可变对象，内部的修改是不能传播到其他进程的。解决方法是将可变对象也作为参数传入。
-def f(ns,x,y):
+但是proxy对象中如果存在可变对象，内部的修改是不能传播到其他进程的。解决方法是将可变对象也作为参数传入。</p>
+
+<pre><code>def f(ns,x,y):
     x.append(1)
     ns.x= x
 manager = multiprocessing.Manager()
 ns = manager.Namespace()
 p = multiprocessing.Process(target=f, args=(ns,ns.x))
-因为manager对象仅能传播对一个可变对象本身所做的修改，如有一个manager.list()对象，管理列表本身的任何更改会传播到所有其他进程。但是，如果容器对象内部还包括可修改的对象，则内部可修改对象的任何更改都不会传播到其他进程。</p>
+</code></pre>
 
-<p>管理的对象没有自带锁。
-def testFunc(nsum,cc):
+<p>因为manager对象仅能传播对一个可变对象本身所做的修改，如有一个manager.list()对象，管理列表本身的任何更改会传播到所有其他进程。但是，如果容器对象内部还包括可修改的对象，则内部可修改对象的任何更改都不会传播到其他进程。</p>
+
+<p>管理的对象没有自带锁。</p>
+
+<pre><code>def testFunc(nsum,cc):
     for i in xrange(10):
         nsum.value += cc
 nsum = manager.Value('tmp', 0)
 t = Process(target=testFunc, args=(nsum,1,))
-这个nsum值会不可测，最粗暴的解决方法需要进程锁
+</code></pre>
+
+<p>这个nsum值会不可测，最粗暴的解决方法需要进程锁
 manager.RLock()
 multiprocessing.RLock() 下面这个锁的速度比上面慢
 如果有多线程，库会为每个线程创建一个proxy对象，每个对象和server进程创建一个连接进行通信。而server进程是创建线程来和proxy对象进程通信的，所以这样可能会导致线程过多。</p>
@@ -592,17 +614,18 @@ pdb.set</em>trace()
 只需要给pdb的构造参数传入stdin/stdout的文件对象，调试过程的输出输入就自然以传入的文件为方向了。
 这里需要两个管道文件p<em>in、p</em>out，运行脚本之前，
 使用命令mkfifo p<em>in p</em>out同时建立
-这还未完成，还需要个外部程序来跟管道交互：
-cat debug_cmd.sh</p>
+这还未完成，还需要个外部程序来跟管道交互：</p>
 
-<h1 id="binbash">!/bin/bash</h1>
-
-<p>cat p<em>out &amp;
+<pre><code>cat debug_cmd.sh
+#!/bin/bash
+cat p_out &amp;
 while [[ 1 ]]; do
     read -e cmd
-    echo $cmd&gt;p</em>in
+    echo $cmd&gt;p_in
 done
-fifo管道在写入端未传入数据时，读取端是阻塞的（反之亦然），所以cat的显示挂在后台，当调试的程序结束后，管道传出EOF，cat就自动退出了。</p>
+</code></pre>
+
+<p>fifo管道在写入端未传入数据时，读取端是阻塞的（反之亦然），所以cat的显示挂在后台，当调试的程序结束后，管道传出EOF，cat就自动退出了。</p>
 
 <h2 id="gevent">gevent</h2>
 

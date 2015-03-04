@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<!-- saved from url=(0079)http://go-talks.appspot.com/github.com/huangnauh/slides/OpenRestyMeetup.slide#1 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>OpenResty TCP 服务代理和动态路由</title>
+    
+    <script>
+      var notesEnabled =  true ;
+    </script>
+    <script src="./2017OpenRestyMeetup_files/slides.js"></script>
+
+    
+    <script>
+      var sections = [{"Number":[1],"Title":"slide","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/qrcode.png","Width":300,"Height":0},{"Lines":["https://huangnauh.github.io/2017OpenRestyMeetup.html\nhttps://github.com/huangnauh/slides\nhttp://go-talks.appspot.com/github.com/huangnauh/slides/OpenRestyMeetup.slide"],"Pre":true}],"Notes":null},{"Number":[2],"Title":"测试环境","Elem":[{"Lines":["git clone git@github.com:huangnauh/slardar.git\ngit co docker\ndocker-compose up"],"Pre":true},{"Lines":["docker-compose.yml:"],"Pre":false},{"Lines":["version: '3.2'\n\nservices:\n    slardar:\n        links:\n            - consul\n            - mysql3307\n            - mysql3306\n        image: huangnauh/slardar:test\n        volumes:\n            - type: bind\n              source: ./nginx/conf\n              target: /usr/local/slardar/nginx/conf"],"Pre":true}],"Notes":null},{"Number":[3],"Title":"NGINX","Elem":[{"Lines":["NGINX 1.9 开始引入 stream 模块, 实现四层协议的转发和代理, 和 http 类似, 也是采用分阶段处理请求的方式"],"Pre":false},{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/phase.png","Width":1000,"Height":0},{"Text":"Image credit: [[http://nginx.org/en/docs/stream/stream_processing.html][stream_processing]]"}],"Notes":null},{"Number":[4],"Title":"SNI 代理","Elem":[{"Lines":["比如, 模块 [[http://nginx.org/en/docs/stream/ngx_stream_ssl_preread_module.html][ngx_stream_ssl_preread]] 在 preread 阶段, 从 ClientHello 消息中提取信息"],"Pre":false},{"Lines":["stream {\n    server {\n        listen 443;\n        ssl_preread on;\n        proxy_pass $ssl_preread_server_name:$server_port;\n    }\n}"],"Pre":true}],"Notes":null},{"Number":[5],"Title":"TCP 负载均衡","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/nginx.png","Width":600,"Height":0},{"Lines":["stream {\n    upstream mysql {\n        #hash $remote_addr consistent;\n        server 127.0.0.1:3306;\n        server 127.0.0.1:3307;\n    }\n    server {\n        listen 3151;\n        proxy_pass mysql;\n    }\n}"],"Pre":true}],"Notes":null},{"Number":[6],"Title":"TCP 负载均衡","Elem":[{"Lines":["测试:"],"Pre":false},{"Lines":["$ echo \"show variables where variable_name = 'hostname'\" \\\n | mysql --skip-column-names -h 127.0.0.1 -P 3151 -uroot -proot\n\nhostname    e3ac73dd497d \u003cmysql3306 CONTAINER ID\u003e"],"Pre":true},{"Lines":["轮询:"],"Pre":false},{"Lines":["$ !!;!!\n\nhostname    396662e2585d \u003cmysql3307 CONTAINER ID\u003e\nhostname    e3ac73dd497d \u003cmysql3306 CONTAINER ID\u003e"],"Pre":true},{"Lines":["hash:"],"Pre":false},{"Lines":["$ !!;!!\n\nhostname    396662e2585d \u003cmysql3307 CONTAINER ID\u003e\nhostname    396662e2585d \u003cmysql3307 CONTAINER ID\u003e"],"Pre":true}],"Notes":null},{"Number":[7],"Title":"stream-lua-nginx","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/stream01.png","Width":800,"Height":0},{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/stream.png","Width":800,"Height":0}],"Notes":null},{"Number":[8],"Title":"Hello, Lua!","Elem":[{"Lines":["和 http 类似"],"Pre":false},{"Lines":["stream {\n    server {\n        listen 3351;\n\n        content_by_lua_block {\n            ngx.say(\"Hello, Lua!\")\n        }\n    }\n}"],"Pre":true},{"Lines":["测试:"],"Pre":false},{"Lines":["$ nc 127.0.0.1 3351\nHello, Lua!"],"Pre":true}],"Notes":null},{"Number":[9],"Title":"TCP 负载均衡","Elem":[{"Lines":["用 Lua 来管理 upstream"],"Pre":false},{"Lines":["stream {\n    upstream backend {\n        server 0.0.0.1:4321; # an invalid address\n        balancer_by_lua_file balance.lua;\n    }\n    server {\n        listen 3131;\n        proxy_pass backend;\n    }\n}"],"Pre":true},{"Lines":["通过 balancer_by_lua* 和 ngx.balancer 来完成动态选择和重试 upstream"],"Pre":false}],"Notes":null},{"Number":[10],"Title":"lua-resty-checkups","Elem":[{"Lines":["[[https://github.com/upyun/lua-resty-checkups][https://github.com/upyun/lua-resty-checkups]]"],"Pre":false},{"Lines":["实现动态 upstream 管理, 之前适用于 http 子系统， 现在也同样适用于 stream 子系统"],"Pre":false},{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/checkups.png","Width":600,"Height":0}],"Notes":null},{"Number":[11],"Title":"动态选择 upstream","Elem":[{"Lines":["在 balancer_by_lua* 中, 通过 tcp 的端口来选择相关可用的 upstream"],"Pre":false},{"Lines":["skey = ngx.var.server_port\n\nlocal peer, err = checkups.select_peer(skey)\nif not peer then\n    ngx.log(ngx.ERR, \"select peer failed, \", err)\n    return\nend\n\nlocal ok, err = balancer.set_current_peer(peer.host, peer.port)"],"Pre":true},{"Bullet":["其中，peer.host 不支持域名"]},{"Lines":["在测试服务中， `set_current_peer` 不能直接使用 { host = \"mysql3306\", port = 3306 }， 需要自己完成解析的操作"],"Pre":false}],"Notes":null},{"Number":[12],"Title":"checkups 配置","Elem":[{"Lines":["_M.[\"3131\"] = {\n    -- 主动健康检查\n    enable = true,\n    typ = \"mysql\",   -- connect mysql\n\n    -- mysql 信息\n    \"user\":\"runner\",\n    \"pass\":\"runner123456\",\n    \"name\":\"upyun\",\n\n    -- mysql 地址\n    cluster = {\n        {\n            servers = {\n                -- mysql3306 被动健康检查\n                { host = \"127.0.0.1\", port = 3306，\"fail_timeout\":10, \"max_fails\":3 },\n                -- mysql3307 同上\n                { host = \"127.0.0.1\", port = 3307 },\n                -- invalid\n                { host = \"127.0.0.1\", port = 3308 },\n            }\n        }\n    }\n}"],"Pre":true}],"Notes":null},{"Number":[13],"Title":"管理 upstream","Elem":[{"Lines":["通过 checkups 的接口, 实现了一个自定义的 tcp 协议, 完成 upstream 的增删改查"],"Pre":false},{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/protocol.png","Width":500,"Height":0}],"Notes":null},{"Number":[14],"Title":"管理 upstream","Elem":[{"Lines":["$ echo -ne 'PUT upstream 3131\\n\\x00\\0x00\\0x00\\0x3d{\"cluster\":[{\"servers\":[{\"host\":\"127.0.0.1\",\n\"port\":3306}]}]}' | nc 127.0.0.1 1895 | xxd\n00000000: 0000 0006 0000 0000 4f4b                 ........OK\n\n$ echo -ne 'get upstream info\\n' | nc 127.0.0.1 1895\n00000000: 0000 02e5 0000 0001 ..."],"Pre":true},{"Lines":["info 信息:"],"Pre":false},{"Lines":["\"3131\": {\n    \"cluster\":[\n        { \"servers\":[{\n            \"host\":\"127.0.0.1\",\n            \"port\":3306,\n            \"weight\":1,\n            \"fail_timeout\":10,\n            \"max_fails\":3}]\n        }\n    ]\n}"],"Pre":true}],"Notes":null},{"Number":[15],"Title":"健康检查","Elem":[{"Lines":["$ echo -ne 'get upstream status\\n' | nc 127.0.0.1 1895 | xxd\n00000000: 0000 025a 0000 0001 ..."],"Pre":true},{"Lines":["status 信息:"],"Pre":false},{"Lines":["{\n    -- checkups heartbeat timer is alive.\n    \"checkup_timer_alive\": true,\n\n    -- last heartbeat time\n    \"last_check_time\": \"2017-12-20 15:40:58\",\n\n    -- status for 3131 cluster\n    \"cls:3131\": [\n        [{\n                \"server\": \"3131:127.0.0.1:3306\",\n                \"msg\":null,\n                \"status\":\"ok\",\n                \"lastmodified\":\"2017-12-20 15:53:21\",\n                \"fail_num\":0\n        }]\n    ]\n}"],"Pre":true}],"Notes":null},{"Number":[16],"Title":"存储 upstream","Elem":[{"Lines":["通过 checkups, 我们可以"],"Pre":false},{"Bullet":["选择一个工作良好的 upstream","对 upstream 进行增删改查"]},{"Lines":["我们还需要: 一个外部数据源来载入 upstream"],"Pre":false},{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/store.png","Width":1000,"Height":0}],"Notes":null},{"Number":[17],"Title":"lua-resty-store","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/luarestystore.png","Width":900,"Height":0},{"Bullet":["*api*:     consul 和 etcd 的 api kv 接口","*config*:  从 consul 或 etcd 动态加载配置","*load*:    从 consul 或 etcd 动态加载 lua 源码"]}],"Notes":null},{"Number":[18],"Title":"upstream in consul","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/upstreamstore.png","Width":900,"Height":0}],"Notes":null},{"Number":[19],"Title":"code in consul","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/code.png","Width":1000,"Height":0}],"Notes":null},{"Number":[20],"Title":"lua-resty-load","Elem":[{"Lines":["[[https://github.com/huangnauh/lua-resty-load][https://github.com/huangnauh/lua-resty-load]]"],"Pre":false},{"Lines":["从外部数据源动态加载 lua 源码, 无需 reload nginx"],"Pre":false},{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/load.png","Width":700,"Height":0}],"Notes":null},{"Number":[21],"Title":"操作 lua 脚本:","Elem":[{"Lines":["与操作 upstream 采用同样的 tcp 协议"],"Pre":false},{"Lines":["$ echo -n 'ngx.exit(1)' | wc -c | xargs printf \"0x%0.2x\"\n0x0b\n$ echo -ne 'LOAD code script.preread3151\\n\\0x00\\0x00\\0x00\\0x0bngx.exit(1)' |\nnc 127.0.0.1 1895 | xxd\n00000000: 0000 0006 0000 0000 4f4b                 ........OK"],"Pre":true},{"Lines":["测试:"],"Pre":false},{"Lines":["$ mysql -h 127.0.0.1 -P 3151 -uroot -proot\nERROR 2013 (HY000): Lost connection to MySQL server"],"Pre":true},{"Lines":["获取脚本信息:"],"Pre":false},{"Lines":["$ echo -ne 'GET code info\\n' | nc 127.0.0.1 1895\n{\n    \"modules\":[{\n        \"time\":\"2017-12-20 13:54:58\",\n        \"version\":\"50e9bb007a4a0b3dbd22712f5453a5f1\",\n        \"name\":\"script.preread3151\"}]\n}"],"Pre":true}],"Notes":null},{"Number":[22],"Title":"应用举例","Elem":[{"Lines":["流量控制, 以漏桶算法(Leaky Bucket) [[https://github.com/openresty/lua-resty-limit-traffic/blob/9ac7c27212474ceb20213aea4bbf6c673a009d80/lib/resty/limit/req.md][resty.limit.req]] 为例:"],"Pre":false},{"Text":"\n\n\n\u003cpre contenteditable=\"true\" spellcheck=\"false\"\u003e\u003cspan num=\"4\"\u003elocal lim = limit_req.new(\u0026#34;stream_limit_req_store\u0026#34;, 1, 3)\u003c/span\u003e\n\u003cspan num=\"5\"\u003elocal key = ngx.var.remote_addr\u003c/span\u003e\n\u003cspan num=\"6\"\u003elocal delay, err = lim:incoming(key, true)\u003c/span\u003e\n\u003cspan num=\"7\"\u003eif not delay then\u003c/span\u003e\n\u003cspan num=\"8\"\u003e    return ngx.exit(1)\u003c/span\u003e\n\u003cspan num=\"9\"\u003eend\u003c/span\u003e\n\u003cspan num=\"10\"\u003eif delay \u0026gt;= 0.001 then\u003c/span\u003e\n\u003cspan num=\"11\"\u003e    ngx.sleep(delay)\u003c/span\u003e\n\u003cspan num=\"12\"\u003eend\u003c/span\u003e\n\u003c/pre\u003e\n\n\n","Play":false,"Edit":true,"FileName":"limit.lua","Ext":".lua","Raw":"bG9jYWwgbGltID0gbGltaXRfcmVxLm5ldygic3RyZWFtX2xpbWl0X3JlcV9zdG9yZSIsIDEsIDMpCmxvY2FsIGtleSA9IG5neC52YXIucmVtb3RlX2FkZHIKbG9jYWwgZGVsYXksIGVyciA9IGxpbTppbmNvbWluZyhrZXksIHRydWUpCmlmIG5vdCBkZWxheSB0aGVuCiAgICByZXR1cm4gbmd4LmV4aXQoMSkKZW5kCmlmIGRlbGF5ID49IDAuMDAxIHRoZW4KICAgIG5neC5zbGVlcChkZWxheSkKZW5kCg=="},{"Lines":["现在还不支持 access_by_lua, 在 preread 阶段完成限制功能"],"Pre":false},{"Lines":["加载前:"],"Pre":false},{"Text":"\n\u003cpre style=\"display: none\"\u003e\u003cspan\u003epackage main\n\nimport (\n\t\u0026#34;database/sql\u0026#34;\n\t\u0026#34;fmt\u0026#34;\n\t\u0026#34;time\u0026#34;\n\n\t_ \u0026#34;github.com/go-sql-driver/mysql\u0026#34;\n)\n\nfunc connect2() {\n\tstart := time.Now()\n\tdb, _ := sql.Open(\u0026#34;mysql\u0026#34;, \u0026#34;runner:runner123456@tcp(127.0.0.1:3251)/upyun\u0026#34;)\n\tdefer db.Close()\n\terr := db.Ping()\n\tif err != nil {\n\t\tfmt.Println(err.Error())\n\t\treturn\n\t}\n\telapsed := time.Since(start)\n\u003c/span\u003e\u003c/pre\u003e\n\n\u003cpre\u003e\u003cspan num=\"21\"\u003e    fmt.Printf(\u0026#34;connected: %s\\n\u0026#34;, elapsed)\u003c/span\u003e\n\u003c/pre\u003e\n\n\u003cpre style=\"display: none\"\u003e\u003cspan\u003e}\n\nfunc main() {\n\tfor i := 0; i \u0026lt; 3; i\u0026#43;\u0026#43; {\n\t\tgo connect2()\n\t}\n\ttime.Sleep(5 * time.Second)\n}\n\u003c/span\u003e\u003c/pre\u003e\n","Play":true,"Edit":false,"FileName":"mysql_3251.go","Ext":".go","Raw":"CWZtdC5QcmludGYoImNvbm5lY3RlZDogJXNcbiIsIGVsYXBzZWQpCg=="},{"Lines":["加载后:"],"Pre":false},{"Text":"\n\u003cpre style=\"display: none\"\u003e\u003cspan\u003epackage main\n\nimport (\n\t\u0026#34;database/sql\u0026#34;\n\t\u0026#34;fmt\u0026#34;\n\t\u0026#34;time\u0026#34;\n\n\t_ \u0026#34;github.com/go-sql-driver/mysql\u0026#34;\n)\n\nfunc connect1() {\n\tstart := time.Now()\n\tdb, _ := sql.Open(\u0026#34;mysql\u0026#34;, \u0026#34;runner:runner123456@tcp(127.0.0.1:3151)/upyun\u0026#34;)\n\tdefer db.Close()\n\terr := db.Ping()\n\tif err != nil {\n\t\tfmt.Println(err.Error())\n\t\treturn\n\t}\n\telapsed := time.Since(start)\n\u003c/span\u003e\u003c/pre\u003e\n\n\u003cpre\u003e\u003cspan num=\"21\"\u003e    fmt.Printf(\u0026#34;connected: %s\\n\u0026#34;, elapsed)\u003c/span\u003e\n\u003c/pre\u003e\n\n\u003cpre style=\"display: none\"\u003e\u003cspan\u003e}\n\nfunc main() {\n\tfor i := 0; i \u0026lt; 3; i\u0026#43;\u0026#43; {\n\t\tgo connect1()\n\t}\n\ttime.Sleep(5 * time.Second)\n}\n\u003c/span\u003e\u003c/pre\u003e\n","Play":true,"Edit":false,"FileName":"mysql_3151.go","Ext":".go","Raw":"CWZtdC5QcmludGYoImNvbm5lY3RlZDogJXNcbiIsIGVsYXBzZWQpCg=="}],"Notes":null},{"Number":[23],"Title":"Slardar","Elem":[{"Lines":["[[https://github.com/upyun/slardar][https://github.com/upyun/slardar]]"],"Pre":false},{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/upyunslardar.png","Width":700,"Height":0}],"Notes":null},{"Number":[24],"Title":"MySQL Proxy","Elem":null,"Notes":null},{"Number":[25],"Title":"mysql packet","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/mysql-proxy.png","Width":800,"Height":0},{"Text":"Image credit: [[https://dev.mysql.com/doc/dev/mysql-server/8.0.0/page_protocol_basic_packets.html/][mysql packets]]"},{"Bullet":["fixed length integer","length encoded integer  根据第一个 byte 转换 integer","null terminated string","length encoded string 根据开始的 integer 决定 string 长度  (客户端认证数据)"]},{"Lines":["lua-resty-mysql [[https://github.com/openresty/lua-resty-mysql/pull/69][pr69]] 在获取字符串的时候没有把 null terminated string 的 null 去除掉"],"Pre":false}],"Notes":null},{"Number":[26],"Title":"MySQL 通讯协议","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/mysql3.png","Width":0,"Height":500}],"Notes":null},{"Number":[27],"Title":"MySQL 握手协议","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/mysql-handshake02.png","Width":750,"Height":0}],"Notes":null},{"Number":[28],"Title":"命令消息","Elem":[{"Bullet":["COM_QUERY 包括 select，update，insert，delete 等","COM_QUIT  客户端退出"]},{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/mysql-command.png","Width":800,"Height":0},{"Lines":["lua-resty-mysql [[https://github.com/openresty/lua-resty-mysql/pull/70][pr70]] 不能处理 field_count 大于 250 的情况"],"Pre":false}],"Notes":null},{"Number":[29],"Title":"MySQL Proxy","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/proxymysql.png","Width":700,"Height":0}],"Notes":null},{"Number":[30],"Title":"lua-resty-mysql-toolset","Elem":[{"Lines":["[[https://github.com/huangnauh/lua-resty-mysql-toolset][https://github.com/huangnauh/lua-resty-mysql-toolset]]"],"Pre":false},{"Lines":["基于以上介绍的基本协议, 在 lua-resty-mysql 的基础上加入了 server 的协议部分, 包括一个测试用的 proxy"],"Pre":false},{"Lines":["stream {\n    server {\n        listen 3141;\n        preread_by_lua_file app/src/stream/preread.lua;\n        content_by_lua_file app/src/stream/content.lua;\n        log_by_lua_file app/src/log.lua;\n   }\n}"],"Pre":true}],"Notes":null},{"Number":[31],"Title":"lua in consul","Elem":[{"URL":"https://raw.github.com/huangnauh/slides/master/slardar/content3141.png","Width":1000,"Height":0},{"Lines":["测试:"],"Pre":false},{"Lines":["$echo \"show variables where variable_name = 'hostname'\" |\npipe\u003e  mysql --skip-column-names -h 127.0.0.1 -P 3141 -urunner -prunner123456  upyun\n\nhostname    huangnauh.local"],"Pre":true}],"Notes":null},{"Number":[32],"Title":"读写分离","Elem":[{"Lines":["1. 通过不同端口来区分读写 upstream, 由应用程序来区分读写"],"Pre":false},{"Lines":["stream {\n    upstream backend {\n        server 0.0.0.1:4321; # an invalid address\n        balancer_by_lua_file balance.lua;\n    }\n    server {\n        listen 3132;\n        proxy_pass backend;\n    }\n    server {\n        listen 3133;\n        proxy_pass backend;\n    }\n}"],"Pre":true}],"Notes":null},{"Number":[33],"Title":"读写分离","Elem":[{"Lines":["2. 分析 COM_QUERY sql 语句"],"Pre":false},{"Lines":["local cmd = string.match(sql, \"([^%s,/]+)\")\nif not cmd then\n    return nil, \"sql error\"\nend\ncmd = string.lower(cmd)\n-- 简单 DML 语句区分读写, 不考虑带注释的情况\nif cmd == \"select\" or cmd == \"show\" then\n    ...\nelse\n    ...\nend"],"Pre":true}],"Notes":null},{"Number":[34],"Title":"性能比较","Elem":[{"Lines":["sysbench --time=10 --threads=100"],"Pre":true},{"Lines":["MySQL Proxy:"],"Pre":false},{"Lines":["SQL statistics:\n    queries performed:\n        read:                            48253\n        other:                           96506\n        total:                           144759\n    queries:                             144759 (14396.37 per sec.)"],"Pre":true},{"Lines":["MySQL:"],"Pre":false},{"Lines":["SQL statistics:\n    queries performed:\n        read:                            65328\n        other:                           130656\n        total:                           195984\n    queries:                             195984 (19525.11 per sec.)"],"Pre":true}],"Notes":null}];
+      var titleNotes =  null 
+    </script>
+    <script src="./2017OpenRestyMeetup_files/notes.js"></script>
+    
+
+    <script>
+      
+      if (window["location"] && window["location"]["hostname"] == "talks.golang.org") {
+        var _gaq = _gaq || [];
+        _gaq.push(["_setAccount", "UA-11222381-6"]);
+        _gaq.push(["b._setAccount", "UA-49880327-6"]);
+        window.trackPageview = function() {
+          _gaq.push(["_trackPageview", location.pathname+location.hash]);
+          _gaq.push(["b._trackPageview", location.pathname+location.hash]);
+        };
+        window.trackPageview();
+        window.trackEvent = function(category, action, opt_label, opt_value, opt_noninteraction) {
+          _gaq.push(["_trackEvent", category, action, opt_label, opt_value, opt_noninteraction]);
+          _gaq.push(["b._trackEvent", category, action, opt_label, opt_value, opt_noninteraction]);
+        };
+      }
+    </script>
+  <style></style><meta name="viewport" content="width=1100,height=750"><meta name="apple-mobile-web-app-capable" content="yes"><style id="style-1-cropbar-clipper">/* Copyright 2014 Evernote Corporation. All rights reserved. */
+.en-markup-crop-options {
+    top: 18px !important;
+    left: 50% !important;
+    margin-left: -100px !important;
+    width: 200px !important;
+    border: 2px rgba(255,255,255,.38) solid !important;
+    border-radius: 4px !important;
+}
+
+.en-markup-crop-options div div:first-of-type {
+    margin-left: 0px !important;
+}
+</style></head>
+
+  <body style="display: none" class="loaded" data-feedly-mini="yes">
+
+    <section class="slides layout-widescreen">
+
+      <article class="current">
+        <h1>OpenResty TCP 服务代理和动态路由</h1>
+        <h3>杭州 OpenResty Meetup</h3>
+        <h3>20 December 2017</h3>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    黄励博(huangnauh)
+  </p>
+  
+
+  
+  <p>
+    又拍云
+  </p>
+  
+
+          </div>
+        
+      </article>
+
+  
+  
+      <article class="next">
+      
+        <h3>slide</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/qrcode.png" width="300">
+</div>
+
+  
+  <div class="code"><pre>https://huangnauh.github.io/2017OpenRestyMeetup.html
+https://github.com/huangnauh/slides
+http://go-talks.appspot.com/github.com/huangnauh/slides/OpenRestyMeetup.slide</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article class="far-next">
+      
+        <h3>测试环境</h3>
+        
+  
+  <div class="code"><pre>git clone git@github.com:huangnauh/slardar.git
+git co docker
+docker-compose up</pre></div>
+  
+
+  
+  <p>
+    docker-compose.yml:
+  </p>
+  
+
+  
+  <div class="code"><pre>version: '3.2'
+
+services:
+    slardar:
+        links:
+            - consul
+            - mysql3307
+            - mysql3306
+        image: huangnauh/slardar:test
+        volumes:
+            - type: bind
+              source: ./nginx/conf
+              target: /usr/local/slardar/nginx/conf</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article class="">
+      
+        <h3>NGINX</h3>
+        
+  
+  <p>
+    NGINX 1.9 开始引入 stream 模块, 实现四层协议的转发和代理, 和 http 类似, 也是采用分阶段处理请求的方式
+  </p>
+  
+
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/phase.png" width="1000">
+</div>
+<figcaption>Image credit: <a href="http://nginx.org/en/docs/stream/stream_processing.html" target="_blank">stream_processing</a></figcaption>
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>SNI 代理</h3>
+        
+  
+  <p>
+    比如, 模块 <a href="http://nginx.org/en/docs/stream/ngx_stream_ssl_preread_module.html" target="_blank">ngx_stream_ssl_preread</a> 在 preread 阶段, 从 ClientHello 消息中提取信息
+  </p>
+  
+
+  
+  <div class="code"><pre>stream {
+    server {
+        listen 443;
+        ssl_preread on;
+        proxy_pass $ssl_preread_server_name:$server_port;
+    }
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>TCP 负载均衡</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/nginx.png" width="600">
+</div>
+
+  
+  <div class="code"><pre>stream {
+    upstream mysql {
+        #hash $remote_addr consistent;
+        server 127.0.0.1:3306;
+        server 127.0.0.1:3307;
+    }
+    server {
+        listen 3151;
+        proxy_pass mysql;
+    }
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>TCP 负载均衡</h3>
+        
+  
+  <p>
+    测试:
+  </p>
+  
+
+  
+  <div class="code"><pre>$ echo "show variables where variable_name = 'hostname'" \
+ | mysql --skip-column-names -h 127.0.0.1 -P 3151 -uroot -proot
+
+hostname    e3ac73dd497d &lt;mysql3306 CONTAINER ID&gt;</pre></div>
+  
+
+  
+  <p>
+    轮询:
+  </p>
+  
+
+  
+  <div class="code"><pre>$ !!;!!
+
+hostname    396662e2585d &lt;mysql3307 CONTAINER ID&gt;
+hostname    e3ac73dd497d &lt;mysql3306 CONTAINER ID&gt;</pre></div>
+  
+
+  
+  <p>
+    hash:
+  </p>
+  
+
+  
+  <div class="code"><pre>$ !!;!!
+
+hostname    396662e2585d &lt;mysql3307 CONTAINER ID&gt;
+hostname    396662e2585d &lt;mysql3307 CONTAINER ID&gt;</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>stream-lua-nginx</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/stream01.png" width="800">
+</div>
+
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/stream.png" width="800">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Hello, Lua!</h3>
+        
+  
+  <p>
+    和 http 类似
+  </p>
+  
+
+  
+  <div class="code"><pre>stream {
+    server {
+        listen 3351;
+
+        content_by_lua_block {
+            ngx.say("Hello, Lua!")
+        }
+    }
+}</pre></div>
+  
+
+  
+  <p>
+    测试:
+  </p>
+  
+
+  
+  <div class="code"><pre>$ nc 127.0.0.1 3351
+Hello, Lua!</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>TCP 负载均衡</h3>
+        
+  
+  <p>
+    用 Lua 来管理 upstream
+  </p>
+  
+
+  
+  <div class="code"><pre>stream {
+    upstream backend {
+        server 0.0.0.1:4321; # an invalid address
+        balancer_by_lua_file balance.lua;
+    }
+    server {
+        listen 3131;
+        proxy_pass backend;
+    }
+}</pre></div>
+  
+
+  
+  <p>
+    通过 balancer_by_lua* 和 ngx.balancer 来完成动态选择和重试 upstream
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>lua-resty-checkups</h3>
+        
+  
+  <p>
+    <a href="https://github.com/upyun/lua-resty-checkups" target="_blank">https://github.com/upyun/lua-resty-checkups</a>
+  </p>
+  
+
+  
+  <p>
+    实现动态 upstream 管理, 之前适用于 http 子系统， 现在也同样适用于 stream 子系统
+  </p>
+  
+
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/checkups.png" width="600">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>动态选择 upstream</h3>
+        
+  
+  <p>
+    在 balancer_by_lua* 中, 通过 tcp 的端口来选择相关可用的 upstream
+  </p>
+  
+
+  
+  <div class="code"><pre>skey = ngx.var.server_port
+
+local peer, err = checkups.select_peer(skey)
+if not peer then
+    ngx.log(ngx.ERR, "select peer failed, ", err)
+    return
+end
+
+local ok, err = balancer.set_current_peer(peer.host, peer.port)</pre></div>
+  
+
+  <ul>
+  
+    <li>其中，peer.host 不支持域名</li>
+  
+  </ul>
+
+  
+  <p>
+    在测试服务中， <code>set_current_peer</code> 不能直接使用 { host = "mysql3306", port = 3306 }， 需要自己完成解析的操作
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>checkups 配置</h3>
+        
+  
+  <div class="code"><pre>_M.["3131"] = {
+    -- 主动健康检查
+    enable = true,
+    typ = "mysql",   -- connect mysql
+
+    -- mysql 信息
+    "user":"runner",
+    "pass":"runner123456",
+    "name":"upyun",
+
+    -- mysql 地址
+    cluster = {
+        {
+            servers = {
+                -- mysql3306 被动健康检查
+                { host = "127.0.0.1", port = 3306，"fail_timeout":10, "max_fails":3 },
+                -- mysql3307 同上
+                { host = "127.0.0.1", port = 3307 },
+                -- invalid
+                { host = "127.0.0.1", port = 3308 },
+            }
+        }
+    }
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>管理 upstream</h3>
+        
+  
+  <p>
+    通过 checkups 的接口, 实现了一个自定义的 tcp 协议, 完成 upstream 的增删改查
+  </p>
+  
+
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/protocol.png" width="500">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>管理 upstream</h3>
+        
+  
+  <div class="code"><pre>$ echo -ne 'PUT upstream 3131\n\x00\0x00\0x00\0x3d{"cluster":[{"servers":[{"host":"127.0.0.1",
+"port":3306}]}]}' | nc 127.0.0.1 1895 | xxd
+00000000: 0000 0006 0000 0000 4f4b                 ........OK
+
+$ echo -ne 'get upstream info\n' | nc 127.0.0.1 1895
+00000000: 0000 02e5 0000 0001 ...</pre></div>
+  
+
+  
+  <p>
+    info 信息:
+  </p>
+  
+
+  
+  <div class="code"><pre>"3131": {
+    "cluster":[
+        { "servers":[{
+            "host":"127.0.0.1",
+            "port":3306,
+            "weight":1,
+            "fail_timeout":10,
+            "max_fails":3}]
+        }
+    ]
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>健康检查</h3>
+        
+  
+  <div class="code"><pre>$ echo -ne 'get upstream status\n' | nc 127.0.0.1 1895 | xxd
+00000000: 0000 025a 0000 0001 ...</pre></div>
+  
+
+  
+  <p>
+    status 信息:
+  </p>
+  
+
+  
+  <div class="code"><pre>{
+    -- checkups heartbeat timer is alive.
+    "checkup_timer_alive": true,
+
+    -- last heartbeat time
+    "last_check_time": "2017-12-20 15:40:58",
+
+    -- status for 3131 cluster
+    "cls:3131": [
+        [{
+                "server": "3131:127.0.0.1:3306",
+                "msg":null,
+                "status":"ok",
+                "lastmodified":"2017-12-20 15:53:21",
+                "fail_num":0
+        }]
+    ]
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>存储 upstream</h3>
+        
+  
+  <p>
+    通过 checkups, 我们可以
+  </p>
+  
+
+  <ul>
+  
+    <li>选择一个工作良好的 upstream</li>
+  
+    <li>对 upstream 进行增删改查</li>
+  
+  </ul>
+
+  
+  <p>
+    我们还需要: 一个外部数据源来载入 upstream
+  </p>
+  
+
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/store.png" width="1000">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>lua-resty-store</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/luarestystore.png" width="900">
+</div>
+
+  <ul>
+  
+    <li><b>api</b>:     consul 和 etcd 的 api kv 接口</li>
+  
+    <li><b>config</b>:  从 consul 或 etcd 动态加载配置</li>
+  
+    <li><b>load</b>:    从 consul 或 etcd 动态加载 lua 源码</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>upstream in consul</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/upstreamstore.png" width="900">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>code in consul</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/code.png" width="1000">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>lua-resty-load</h3>
+        
+  
+  <p>
+    <a href="https://github.com/huangnauh/lua-resty-load" target="_blank">https://github.com/huangnauh/lua-resty-load</a>
+  </p>
+  
+
+  
+  <p>
+    从外部数据源动态加载 lua 源码, 无需 reload nginx
+  </p>
+  
+
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/load.png" width="700">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>操作 lua 脚本:</h3>
+        
+  
+  <p>
+    与操作 upstream 采用同样的 tcp 协议
+  </p>
+  
+
+  
+  <div class="code"><pre>$ echo -n 'ngx.exit(1)' | wc -c | xargs printf "0x%0.2x"
+0x0b
+$ echo -ne 'LOAD code script.preread3151\n\0x00\0x00\0x00\0x0bngx.exit(1)' |
+nc 127.0.0.1 1895 | xxd
+00000000: 0000 0006 0000 0000 4f4b                 ........OK</pre></div>
+  
+
+  
+  <p>
+    测试:
+  </p>
+  
+
+  
+  <div class="code"><pre>$ mysql -h 127.0.0.1 -P 3151 -uroot -proot
+ERROR 2013 (HY000): Lost connection to MySQL server</pre></div>
+  
+
+  
+  <p>
+    获取脚本信息:
+  </p>
+  
+
+  
+  <div class="code"><pre>$ echo -ne 'GET code info\n' | nc 127.0.0.1 1895
+{
+    "modules":[{
+        "time":"2017-12-20 13:54:58",
+        "version":"50e9bb007a4a0b3dbd22712f5453a5f1",
+        "name":"script.preread3151"}]
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>应用举例</h3>
+        
+  
+  <p>
+    流量控制, 以漏桶算法(Leaky Bucket) <a href="https://github.com/openresty/lua-resty-limit-traffic/blob/9ac7c27212474ceb20213aea4bbf6c673a009d80/lib/resty/limit/req.md" target="_blank">resty.limit.req</a> 为例:
+  </p>
+  
+
+  <div class="code" contenteditable="true" spellcheck="false">
+
+
+<pre contenteditable="true" spellcheck="false"><span num="4">local lim = limit_req.new("stream_limit_req_store", 1, 3)</span>
+<span num="5">local key = ngx.var.remote_addr</span>
+<span num="6">local delay, err = lim:incoming(key, true)</span>
+<span num="7">if not delay then</span>
+<span num="8">    return ngx.exit(1)</span>
+<span num="9">end</span>
+<span num="10">if delay &gt;= 0.001 then</span>
+<span num="11">    ngx.sleep(delay)</span>
+<span num="12">end</span>
+</pre>
+
+
+</div>
+
+  
+  <p>
+    现在还不支持 access_by_lua, 在 preread 阶段完成限制功能
+  </p>
+  
+
+  
+  <p>
+    加载前:
+  </p>
+  
+
+  <div class="code playground">
+<pre style="display: none"><span>package main
+
+import (
+	"database/sql"
+	"fmt"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+
+func connect2() {
+	start := time.Now()
+	db, _ := sql.Open("mysql", "runner:runner123456@tcp(127.0.0.1:3251)/upyun")
+	defer db.Close()
+	err := db.Ping()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	elapsed := time.Since(start)
+</span></pre>
+
+<pre><span num="21">    fmt.Printf("connected: %s\n", elapsed)</span>
+</pre>
+
+<pre style="display: none"><span>}
+
+func main() {
+	for i := 0; i &lt; 3; i++ {
+		go connect2()
+	}
+	time.Sleep(5 * time.Second)
+}
+</span></pre>
+</div><div class="buttons"><button class="run">Run</button></div><div class="output" style="display: none;"><div class="buttons"><button class="run">Run</button><button class="kill">Kill</button><button class="close">Close</button></div><pre></pre></div>
+
+  
+  <p>
+    加载后:
+  </p>
+  
+
+  <div class="code playground">
+<pre style="display: none"><span>package main
+
+import (
+	"database/sql"
+	"fmt"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+
+func connect1() {
+	start := time.Now()
+	db, _ := sql.Open("mysql", "runner:runner123456@tcp(127.0.0.1:3151)/upyun")
+	defer db.Close()
+	err := db.Ping()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	elapsed := time.Since(start)
+</span></pre>
+
+<pre><span num="21">    fmt.Printf("connected: %s\n", elapsed)</span>
+</pre>
+
+<pre style="display: none"><span>}
+
+func main() {
+	for i := 0; i &lt; 3; i++ {
+		go connect1()
+	}
+	time.Sleep(5 * time.Second)
+}
+</span></pre>
+</div><div class="buttons"><button class="run">Run</button></div><div class="output" style="display: none;"><div class="buttons"><button class="run">Run</button><button class="kill">Kill</button><button class="close">Close</button></div><pre></pre></div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Slardar</h3>
+        
+  
+  <p>
+    <a href="https://github.com/upyun/slardar" target="_blank">https://github.com/upyun/slardar</a>
+  </p>
+  
+
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/upyunslardar.png" width="700">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h2>MySQL Proxy</h2>
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>mysql packet</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/mysql-proxy.png" width="800">
+</div>
+<figcaption>Image credit: <a href="https://dev.mysql.com/doc/dev/mysql-server/8.0.0/page_protocol_basic_packets.html/" target="_blank">mysql packets</a></figcaption>
+  <ul>
+  
+    <li>fixed length integer</li>
+  
+    <li>length encoded integer  根据第一个 byte 转换 integer</li>
+  
+    <li>null terminated string</li>
+  
+    <li>length encoded string 根据开始的 integer 决定 string 长度  (客户端认证数据)</li>
+  
+  </ul>
+
+  
+  <p>
+    lua-resty-mysql <a href="https://github.com/openresty/lua-resty-mysql/pull/69" target="_blank">pr69</a> 在获取字符串的时候没有把 null terminated string 的 null 去除掉
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>MySQL 通讯协议</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/mysql3.png" height="500">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>MySQL 握手协议</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/mysql-handshake02.png" width="750">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>命令消息</h3>
+        
+  <ul>
+  
+    <li>COM_QUERY 包括 select，update，insert，delete 等</li>
+  
+    <li>COM_QUIT  客户端退出</li>
+  
+  </ul>
+
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/mysql-command.png" width="800">
+</div>
+
+  
+  <p>
+    lua-resty-mysql <a href="https://github.com/openresty/lua-resty-mysql/pull/70" target="_blank">pr70</a> 不能处理 field_count 大于 250 的情况
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>MySQL Proxy</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/proxymysql.png" width="700">
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>lua-resty-mysql-toolset</h3>
+        
+  
+  <p>
+    <a href="https://github.com/huangnauh/lua-resty-mysql-toolset" target="_blank">https://github.com/huangnauh/lua-resty-mysql-toolset</a>
+  </p>
+  
+
+  
+  <p>
+    基于以上介绍的基本协议, 在 lua-resty-mysql 的基础上加入了 server 的协议部分, 包括一个测试用的 proxy
+  </p>
+  
+
+  
+  <div class="code"><pre>stream {
+    server {
+        listen 3141;
+        preread_by_lua_file app/src/stream/preread.lua;
+        content_by_lua_file app/src/stream/content.lua;
+        log_by_lua_file app/src/log.lua;
+   }
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>lua in consul</h3>
+        
+<div class="image">
+  <img src="./2017OpenRestyMeetup_files/content3141.png" width="1000">
+</div>
+
+  
+  <p>
+    测试:
+  </p>
+  
+
+  
+  <div class="code"><pre>$echo "show variables where variable_name = 'hostname'" |
+pipe&gt;  mysql --skip-column-names -h 127.0.0.1 -P 3141 -urunner -prunner123456  upyun
+
+hostname    huangnauh.local</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>读写分离</h3>
+        
+  
+  <p>
+    1. 通过不同端口来区分读写 upstream, 由应用程序来区分读写
+  </p>
+  
+
+  
+  <div class="code"><pre>stream {
+    upstream backend {
+        server 0.0.0.1:4321; # an invalid address
+        balancer_by_lua_file balance.lua;
+    }
+    server {
+        listen 3132;
+        proxy_pass backend;
+    }
+    server {
+        listen 3133;
+        proxy_pass backend;
+    }
+}</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>读写分离</h3>
+        
+  
+  <p>
+    2. 分析 COM_QUERY sql 语句
+  </p>
+  
+
+  
+  <div class="code"><pre>local cmd = string.match(sql, "([^%s,/]+)")
+if not cmd then
+    return nil, "sql error"
+end
+cmd = string.lower(cmd)
+-- 简单 DML 语句区分读写, 不考虑带注释的情况
+if cmd == "select" or cmd == "show" then
+    ...
+else
+    ...
+end</pre></div>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>性能比较</h3>
+        
+  
+  <div class="code"><pre>sysbench --time=10 --threads=100</pre></div>
+  
+
+  
+  <p>
+    MySQL Proxy:
+  </p>
+  
+
+  
+  <div class="code"><pre>SQL statistics:
+    queries performed:
+        read:                            48253
+        other:                           96506
+        total:                           144759
+    queries:                             144759 (14396.37 per sec.)</pre></div>
+  
+
+  
+  <p>
+    MySQL:
+  </p>
+  
+
+  
+  <div class="code"><pre>SQL statistics:
+    queries performed:
+        read:                            65328
+        other:                           130656
+        total:                           195984
+    queries:                             195984 (19525.11 per sec.)</pre></div>
+  
+
+      
+      </article>
+  
+  
+
+      <article>
+        <h3>Thank you</h3>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    黄励博(huangnauh)
+  </p>
+  
+
+  
+  <p>
+    又拍云
+  </p>
+  
+<p class="link"><a href="mailto:ihuangnauh@gmail.com" target="_blank">ihuangnauh@gmail.com</a></p><p class="link"><a href="https://github.com/huangnauh" target="_blank">https://github.com/huangnauh</a></p>
+          </div>
+        
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+    <div id="help" style="display: none;">
+      Use the left and right arrow keys or click the left and right
+      edges of the page to navigate between slides.<br>
+      (Press 'H' or navigate to hide this message.)
+    </div>
+
+    
+    <script src="./2017OpenRestyMeetup_files/play.js"></script>
+    
+
+    <script>
+      (function() {
+        
+        if (window["location"] && window["location"]["hostname"] == "talks.golang.org") {
+          var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+          ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+          var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+        }
+      })();
+    </script>
+  
+
+<link rel="stylesheet" type="text/css" href="./2017OpenRestyMeetup_files/css"><link rel="stylesheet" type="text/css" href="./2017OpenRestyMeetup_files/styles.css"><div id="feedly-mini" title="feedly Mini tookit"></div></body></html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="Keywords" content="blog"/>
     <meta name="Description" content="blog"/>
-    <title>huangnauh</title>
+    <title>Simple</title>
     <link rel="shortcut icon" href="/static/favicon.png"/>
     <link rel="stylesheet" type="text/css" href="/main.css" />
 </head>
@@ -25,79 +25,6 @@
 	</div>
 <div id="md" style="display: none;">
 <!-- markdown -->
-##  py2 与 py3的区别
-1. print
-2. 整数除法 py2.7 3/2 = 1  py3.4 3/2=1.5
-3. unicode 
-
-     Py2有基于ASCII的str()类型，其可通过单独的unicode()函数转成unicode类型，但没有byte类型。而在Py3中，终于有了Unicode（utf-8）字符串，以及两个字节类：bytes和bytearrays。
-
-4. xrange
-    
-    在Py3中，range()的实现方式与xrange()函数相同，所以就不存在专用的xrange()(惰性求值)
-
-5. next
-
-      在Py2.7中，函数形式和方法形式都可以使用，而在Py3中，只能使用next()函数（试图调用.next()方法会触发AttributeError）。
-
-6. 在Py3.4中，for循环中的变量不再会泄漏到全局命名空间中了！
-
-7. Py3中如果我们试图比较无序类型，会触发一个TypeError。
-
-8. 异常
-```
-def bad():
-    e = None
-    try:
-        bar(int(sys.argv[1]))
-    except ValueError as e:
-        print('value error')
-    print(e)
-```
-在Py3里，在except块的作用域以外，异常对象（exception object）是不能被访问的。如果不这样的话，Python会在内存的堆栈里保持一个引用链直到Python的垃圾处理将这些引用从内存中清除掉
-
-所以在py3中可以修改为
-```
-def good():
-    exception = None
-    try:
-        bar(int(sys.argv[1]))
-    except ValueError as e:
-        exception = e
-        print('value error')
-    print(exception)
-```
-
-    
-## python的内存管理
-### 1. 对象的引用计数机制
-增加： 一个对象分配一个新名称。将其放入容器时
-
-减少：del 重新赋值 超出作用域
-
-`sys.getrefcount()`
-创建对象的时候，Python会立即向操作系统申请分配内存，引用计数减少为0后，Python垃圾回收器执行
-
-### 2. 垃圾回收
-显式地调用gc.collect()进行垃圾回收
-
-在引用计数的基础上，通过“标记-清除”（mark-and-sweep）解决容器对象可能产生的循环引用问题。
-通过“分代回收”（generation collection）以空间换时间的方法提高垃圾回收效率
-
-1. 创建新对象，对象链接到了第0代对象集合中
-2. 被分配对象的计数值与被释放对象的计数值之间的差异超过某个阈值，Python的收集机制就启动了，触发零代算法
-3. 垃圾标记时，先将集合中对象的引用计数复制一份副本。然后操作这个副本，遍历对象集合，检查其中每个互相引用的对象，根据规则减掉其引用计数。
-4. 引用计数副本值是否为0将集合内的对象分成两类，`reachable`和`unreachable`。`unreachable`被回收，`reachable`被移动到一个新的链表：一代链表
-5. 将系统中的所有内存块根据其存活时间划分为不同的集合，每个集合就成为一个“代”，垃圾收集频率随着“代”的存活时间的增大而减小，存活时间通常利用经过几次垃圾回收来度量。
-
-弱代假说：首先是年亲的对象通常死得也快，而老对象则很有可能存活更长的时间。Python默认定义了三代对象集合
-
-### 3.内存池
-python对象，都有其独立的私有内存池，对象间不共享他们的内存池
-小于256个字节的对象都使用pymalloc实现的分配器
-
-block 8，16，32，256。一个4k的pool，维护的block大小都是一样的 freeblock链表维护释放的block。一个256K的area，维护64个pool。而大的对象则使用系统的 malloc
-
 ## 基础知识
 #### 1. python 拥有与直觉相同的链式比较操作,比如1 < 5 > 4
 #### 2. 用enumerate(list,start=0)包装一个可迭代对象,可以同时使用迭代项和索引
@@ -187,6 +114,32 @@ dis.dis(foo),直接分析它的函数对象。
 单引号和双引号没有区别。
 三引号的形式用来输入多行文本，也就是说在三引号之间输入的内容将被原样保留，之中的单号和双引号不用转义
 
+#### 9. 异常:
+try块中发生异常的时候,如果在except语句中找不到对应的异常处理，异常将会被临时保存起来，当finally执行完毕的时候，临时保存的异常将会再次被抛出。
+finally出现新的异常或者执行return，break语句，会导致异常丢失
+另外，因为try中return语句执行前，先执行finally，所以一旦finally有return，导致try中return永远无法执行
+
+#### 10. eval 和 exec
+
+`eval(expression[, globals[, locals]])`
+eval 是當我們要計算某一個字串中的運算, 並且 會回傳計算結果
+`exec(expr, globals, locals)`
+exec 是把字串當成程式碼來執行, 但是 不會回傳結果。
+和 eval 不同的是, exec 可以用於 assignment 赋值
+`exec("a=100")`
+
+```
+eval('[c for c in ().__class__.__bases__[0].__subclasses__() if c.__name__ =="Quitter"][0](9)',{"__builtins__": None},None)
+().__class__.__bases__[0].__subclasses__()
+```
+用来显示object类的所有子类。类Quitter与"quit"功能绑定，因此上面的输入会直接导致程序退出。
+如果使用对象不是信任源，应该尽量避免使用eval，在需要使用eval的地方可用安全性更好的ast.literal_eval替代
+
+2.7与3.4不同
+
+LOAD_FAST　在代码对象的co_varnames属性中寻找变量名。
+LOAD_GLOBAL 在代码对象的co_names属性中寻找变量名。
+LOAD_NAME　从代码对象的co_names属性读取变量名，然后依次从局域变量的字典以及全局变量的字典寻找对应的值。
 
 ## 数据结构
 ####1. list
@@ -220,6 +173,64 @@ weakref创建Python引用，且不会阻止对象的销毁操作
 b = weakref.ref(a)
 a == b() 
 ```
+
+####7. 结构体：
+array(数组支持一种类型，不支持混合类型)
+`nums = array.array("i",[1,2,3,4])`
+
+struct(二进制字节序列支持混合类型)
+`s = struct.pack("2i2s", 0x12, 0x34, "ab")`
+
+numpy定义结构数组：
+```
+persontype = numpy.dtype({ 
+'names':['name', 'age', 'weight'],
+'formats':['S30','i', 'f']}, align= True)
+a = numpy.array([("Zhang",32,75.5),("Wang",24,65.2)], dtype=persontype)
+```
+
+####8. sorted和sort
+`sorted(iterable[, cmp[, key[, reverse]]])`
+`s.sort([cmp[, key[, reverse]]])`
+
+cmp(e1, e2) 是带两个参数的比较函数。
+key(e) 是带一个参数的函数, 用来为每个元素提取比较值。
+
+cmp传入的函数在整个排序过程中会调用多次，函数开销较大；而key针对每个元素仅作一次处理，因此使用key比使用cmp效率要高。
+
+sorted()函数会返回一个排序后的列表，原有列表保持不变；而sort()函数会直接修改原有列表，函数返回为None。
+
+sorted()作用于任意可迭代的对象，而sort()一般作用于列表,
+所以sort()函数不需要复制原有列表，消耗的内存较少，效率也较高。
+
+## python的内存管理
+### 1. 对象的引用计数机制
+增加： 一个对象分配一个新名称。将其放入容器时
+
+减少：del 重新赋值 超出作用域
+
+`sys.getrefcount()`
+创建对象的时候，Python会立即向操作系统申请分配内存，引用计数减少为0后，Python垃圾回收器执行
+
+### 2. 垃圾回收
+显式地调用gc.collect()进行垃圾回收
+
+在引用计数的基础上，通过“标记-清除”（mark-and-sweep）解决容器对象可能产生的循环引用问题。
+通过“分代回收”（generation collection）以空间换时间的方法提高垃圾回收效率
+
+1. 创建新对象，对象链接到了第0代对象集合中
+2. 被分配对象的计数值与被释放对象的计数值之间的差异超过某个阈值，Python的收集机制就启动了，触发零代算法
+3. 垃圾标记时，先将集合中对象的引用计数复制一份副本。然后操作这个副本，遍历对象集合，检查其中每个互相引用的对象，根据规则减掉其引用计数。
+4. 引用计数副本值是否为0将集合内的对象分成两类，`reachable`和`unreachable`。`unreachable`被回收，`reachable`被移动到一个新的链表：一代链表
+5. 将系统中的所有内存块根据其存活时间划分为不同的集合，每个集合就成为一个“代”，垃圾收集频率随着“代”的存活时间的增大而减小，存活时间通常利用经过几次垃圾回收来度量。
+
+弱代假说：首先是年亲的对象通常死得也快，而老对象则很有可能存活更长的时间。Python默认定义了三代对象集合
+
+### 3.内存池
+python对象，都有其独立的私有内存池，对象间不共享他们的内存池
+小于256个字节的对象都使用pymalloc实现的分配器
+
+block 8，16，32，256。一个4k的pool，维护的block大小都是一样的 freeblock链表维护释放的block。一个256K的area，维护64个pool。而大的对象则使用系统的 malloc
 
 ## GIL
 GIL的引入使得多线程不能在多核系统中发挥优势，在单核CPU上，由于其本质是顺序执行的，一般情况下多线程能够获得较好的性能
@@ -642,6 +653,64 @@ def from_json(d):
         _class = getattr(_module,class_name)
 ```
 
+####6. 文件
+csv文件
+
+
+文件在python3中，
+TextIOWrapper 是文本处理层，
+BufferedWriter 是缓存的io层处理字节数据，
+FileIO   操作系统的文件描述符。
+
+临时文件tempfile，
+TemporaryFile 关闭后自动删除，
+NamedTemporaryFile 
+
+
+
+##  py2 与 py3的区别
+1. print
+2. 整数除法 py2.7 3/2 = 1  py3.4 3/2=1.5
+3. unicode 
+
+     Py2有基于ASCII的str()类型，其可通过单独的unicode()函数转成unicode类型，但没有byte类型。而在Py3中，终于有了Unicode（utf-8）字符串，以及两个字节类：bytes和bytearrays。
+
+4. xrange
+    
+    在Py3中，range()的实现方式与xrange()函数相同，所以就不存在专用的xrange()(惰性求值)
+
+5. next
+
+      在Py2.7中，函数形式和方法形式都可以使用，而在Py3中，只能使用next()函数（试图调用.next()方法会触发AttributeError）。
+
+6. 在Py3.4中，for循环中的变量不再会泄漏到全局命名空间中了！
+
+7. Py3中如果我们试图比较无序类型，会触发一个TypeError。
+
+8. 异常
+```
+def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except ValueError as e:
+        print('value error')
+    print(e)
+```
+在Py3里，在except块的作用域以外，异常对象（exception object）是不能被访问的。如果不这样的话，Python会在内存的堆栈里保持一个引用链直到Python的垃圾处理将这些引用从内存中清除掉
+
+所以在py3中可以修改为
+```
+def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except ValueError as e:
+        exception = e
+        print('value error')
+    print(exception)
+```
+
 ##python设计模式
 1. mvc模式：
 2. 桥接模式 ： `socketserver`中server类 handle类
@@ -676,83 +745,6 @@ class Borg:
 </div>
 <div class="entry" id="main">
 <!-- content -->
-<h2 id="py2py3">py2 与 py3的区别</h2>
-
-<ol>
-<li>print</li>
-<li>整数除法 py2.7 3/2 = 1  py3.4 3/2=1.5</li>
-<li><p>unicode </p>
-
-<p>Py2有基于ASCII的str()类型，其可通过单独的unicode()函数转成unicode类型，但没有byte类型。而在Py3中，终于有了Unicode（utf-8）字符串，以及两个字节类：bytes和bytearrays。</p></li>
-<li><p>xrange</p>
-
-<p>在Py3中，range()的实现方式与xrange()函数相同，所以就不存在专用的xrange()(惰性求值)</p></li>
-<li><p>next</p>
-
-<p>在Py2.7中，函数形式和方法形式都可以使用，而在Py3中，只能使用next()函数（试图调用.next()方法会触发AttributeError）。</p></li>
-<li><p>在Py3.4中，for循环中的变量不再会泄漏到全局命名空间中了！</p></li>
-<li><p>Py3中如果我们试图比较无序类型，会触发一个TypeError。</p></li>
-<li><p>异常</p></li>
-</ol>
-
-<pre><code>def bad():
-    e = None
-    try:
-        bar(int(sys.argv[1]))
-    except ValueError as e:
-        print('value error')
-    print(e)
-</code></pre>
-
-<p>在Py3里，在except块的作用域以外，异常对象（exception object）是不能被访问的。如果不这样的话，Python会在内存的堆栈里保持一个引用链直到Python的垃圾处理将这些引用从内存中清除掉</p>
-
-<p>所以在py3中可以修改为</p>
-
-<pre><code>def good():
-    exception = None
-    try:
-        bar(int(sys.argv[1]))
-    except ValueError as e:
-        exception = e
-        print('value error')
-    print(exception)
-</code></pre>
-
-<h2 id="python">python的内存管理</h2>
-
-<h3 id="1">1. 对象的引用计数机制</h3>
-
-<p>增加： 一个对象分配一个新名称。将其放入容器时</p>
-
-<p>减少：del 重新赋值 超出作用域</p>
-
-<p><code>sys.getrefcount()</code>
-创建对象的时候，Python会立即向操作系统申请分配内存，引用计数减少为0后，Python垃圾回收器执行</p>
-
-<h3 id="2">2. 垃圾回收</h3>
-
-<p>显式地调用gc.collect()进行垃圾回收</p>
-
-<p>在引用计数的基础上，通过“标记-清除”（mark-and-sweep）解决容器对象可能产生的循环引用问题。
-通过“分代回收”（generation collection）以空间换时间的方法提高垃圾回收效率</p>
-
-<ol>
-<li>创建新对象，对象链接到了第0代对象集合中</li>
-<li>被分配对象的计数值与被释放对象的计数值之间的差异超过某个阈值，Python的收集机制就启动了，触发零代算法</li>
-<li>垃圾标记时，先将集合中对象的引用计数复制一份副本。然后操作这个副本，遍历对象集合，检查其中每个互相引用的对象，根据规则减掉其引用计数。</li>
-<li>引用计数副本值是否为0将集合内的对象分成两类，<code>reachable</code>和<code>unreachable</code>。<code>unreachable</code>被回收，<code>reachable</code>被移动到一个新的链表：一代链表</li>
-<li>将系统中的所有内存块根据其存活时间划分为不同的集合，每个集合就成为一个“代”，垃圾收集频率随着“代”的存活时间的增大而减小，存活时间通常利用经过几次垃圾回收来度量。</li>
-</ol>
-
-<p>弱代假说：首先是年亲的对象通常死得也快，而老对象则很有可能存活更长的时间。Python默认定义了三代对象集合</p>
-
-<h3 id="3">3.内存池</h3>
-
-<p>python对象，都有其独立的私有内存池，对象间不共享他们的内存池
-小于256个字节的对象都使用pymalloc实现的分配器</p>
-
-<p>block 8，16，32，256。一个4k的pool，维护的block大小都是一样的 freeblock链表维护释放的block。一个256K的area，维护64个pool。而大的对象则使用系统的 malloc</p>
-
 <h2 id="">基础知识</h2>
 
 <h4 id="1python154">1. python 拥有与直觉相同的链式比较操作,比如1 &lt; 5 &gt; 4</h4>
@@ -851,6 +843,34 @@ dis.dis(foo),直接分析它的函数对象。
 <p>单引号和双引号没有区别。
 三引号的形式用来输入多行文本，也就是说在三引号之间输入的内容将被原样保留，之中的单号和双引号不用转义</p>
 
+<h4 id="9">9. 异常:</h4>
+
+<p>try块中发生异常的时候,如果在except语句中找不到对应的异常处理，异常将会被临时保存起来，当finally执行完毕的时候，临时保存的异常将会再次被抛出。
+finally出现新的异常或者执行return，break语句，会导致异常丢失
+另外，因为try中return语句执行前，先执行finally，所以一旦finally有return，导致try中return永远无法执行</p>
+
+<h4 id="10evalexec">10. eval 和 exec</h4>
+
+<p><code>eval(expression[, globals[, locals]])</code>
+eval 是當我們要計算某一個字串中的運算, 並且 會回傳計算結果
+<code>exec(expr, globals, locals)</code>
+exec 是把字串當成程式碼來執行, 但是 不會回傳結果。
+和 eval 不同的是, exec 可以用於 assignment 赋值
+<code>exec("a=100")</code></p>
+
+<pre><code>eval('[c for c in ().__class__.__bases__[0].__subclasses__() if c.__name__ =="Quitter"][0](9)',{"__builtins__": None},None)
+().__class__.__bases__[0].__subclasses__()
+</code></pre>
+
+<p>用来显示object类的所有子类。类Quitter与"quit"功能绑定，因此上面的输入会直接导致程序退出。
+如果使用对象不是信任源，应该尽量避免使用eval，在需要使用eval的地方可用安全性更好的ast.literal_eval替代</p>
+
+<p>2.7与3.4不同</p>
+
+<p>LOAD<em>FAST　在代码对象的co</em>varnames属性中寻找变量名。
+LOAD<em>GLOBAL 在代码对象的co</em>names属性中寻找变量名。
+LOAD<em>NAME　从代码对象的co</em>names属性读取变量名，然后依次从局域变量的字典以及全局变量的字典寻找对应的值。</p>
+
 <h2 id="">数据结构</h2>
 
 <h4 id="1list">1. list</h4>
@@ -890,6 +910,72 @@ a.most_common(2)
 <pre><code>b = weakref.ref(a)
 a == b() 
 </code></pre>
+
+<h4 id="7">7. 结构体：</h4>
+
+<p>array(数组支持一种类型，不支持混合类型)
+<code>nums = array.array("i",[1,2,3,4])</code></p>
+
+<p>struct(二进制字节序列支持混合类型)
+<code>s = struct.pack("2i2s", 0x12, 0x34, "ab")</code></p>
+
+<p>numpy定义结构数组：</p>
+
+<pre><code>persontype = numpy.dtype({ 
+'names':['name', 'age', 'weight'],
+'formats':['S30','i', 'f']}, align= True)
+a = numpy.array([("Zhang",32,75.5),("Wang",24,65.2)], dtype=persontype)
+</code></pre>
+
+<h4 id="8sortedsort">8. sorted和sort</h4>
+
+<p><code>sorted(iterable[, cmp[, key[, reverse]]])</code>
+<code>s.sort([cmp[, key[, reverse]]])</code></p>
+
+<p>cmp(e1, e2) 是带两个参数的比较函数。
+key(e) 是带一个参数的函数, 用来为每个元素提取比较值。</p>
+
+<p>cmp传入的函数在整个排序过程中会调用多次，函数开销较大；而key针对每个元素仅作一次处理，因此使用key比使用cmp效率要高。</p>
+
+<p>sorted()函数会返回一个排序后的列表，原有列表保持不变；而sort()函数会直接修改原有列表，函数返回为None。</p>
+
+<p>sorted()作用于任意可迭代的对象，而sort()一般作用于列表,
+所以sort()函数不需要复制原有列表，消耗的内存较少，效率也较高。</p>
+
+<h2 id="python">python的内存管理</h2>
+
+<h3 id="1">1. 对象的引用计数机制</h3>
+
+<p>增加： 一个对象分配一个新名称。将其放入容器时</p>
+
+<p>减少：del 重新赋值 超出作用域</p>
+
+<p><code>sys.getrefcount()</code>
+创建对象的时候，Python会立即向操作系统申请分配内存，引用计数减少为0后，Python垃圾回收器执行</p>
+
+<h3 id="2">2. 垃圾回收</h3>
+
+<p>显式地调用gc.collect()进行垃圾回收</p>
+
+<p>在引用计数的基础上，通过“标记-清除”（mark-and-sweep）解决容器对象可能产生的循环引用问题。
+通过“分代回收”（generation collection）以空间换时间的方法提高垃圾回收效率</p>
+
+<ol>
+<li>创建新对象，对象链接到了第0代对象集合中</li>
+<li>被分配对象的计数值与被释放对象的计数值之间的差异超过某个阈值，Python的收集机制就启动了，触发零代算法</li>
+<li>垃圾标记时，先将集合中对象的引用计数复制一份副本。然后操作这个副本，遍历对象集合，检查其中每个互相引用的对象，根据规则减掉其引用计数。</li>
+<li>引用计数副本值是否为0将集合内的对象分成两类，<code>reachable</code>和<code>unreachable</code>。<code>unreachable</code>被回收，<code>reachable</code>被移动到一个新的链表：一代链表</li>
+<li>将系统中的所有内存块根据其存活时间划分为不同的集合，每个集合就成为一个“代”，垃圾收集频率随着“代”的存活时间的增大而减小，存活时间通常利用经过几次垃圾回收来度量。</li>
+</ol>
+
+<p>弱代假说：首先是年亲的对象通常死得也快，而老对象则很有可能存活更长的时间。Python默认定义了三代对象集合</p>
+
+<h3 id="3">3.内存池</h3>
+
+<p>python对象，都有其独立的私有内存池，对象间不共享他们的内存池
+小于256个字节的对象都使用pymalloc实现的分配器</p>
+
+<p>block 8，16，32，256。一个4k的pool，维护的block大小都是一样的 freeblock链表维护释放的block。一个256K的area，维护64个pool。而大的对象则使用系统的 malloc</p>
 
 <h2 id="gil">GIL</h2>
 
@@ -1341,6 +1427,61 @@ json 不支持bytes对象。
         _class = getattr(_module,class_name)
 </code></pre>
 
+<h4 id="6">6. 文件</h4>
+
+<p>csv文件</p>
+
+<p>文件在python3中，
+TextIOWrapper 是文本处理层，
+BufferedWriter 是缓存的io层处理字节数据，
+FileIO   操作系统的文件描述符。</p>
+
+<p>临时文件tempfile，
+TemporaryFile 关闭后自动删除，
+NamedTemporaryFile </p>
+
+<h2 id="py2py3">py2 与 py3的区别</h2>
+
+<ol>
+<li>print</li>
+<li>整数除法 py2.7 3/2 = 1  py3.4 3/2=1.5</li>
+<li><p>unicode </p>
+
+<p>Py2有基于ASCII的str()类型，其可通过单独的unicode()函数转成unicode类型，但没有byte类型。而在Py3中，终于有了Unicode（utf-8）字符串，以及两个字节类：bytes和bytearrays。</p></li>
+<li><p>xrange</p>
+
+<p>在Py3中，range()的实现方式与xrange()函数相同，所以就不存在专用的xrange()(惰性求值)</p></li>
+<li><p>next</p>
+
+<p>在Py2.7中，函数形式和方法形式都可以使用，而在Py3中，只能使用next()函数（试图调用.next()方法会触发AttributeError）。</p></li>
+<li><p>在Py3.4中，for循环中的变量不再会泄漏到全局命名空间中了！</p></li>
+<li><p>Py3中如果我们试图比较无序类型，会触发一个TypeError。</p></li>
+<li><p>异常</p></li>
+</ol>
+
+<pre><code>def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except ValueError as e:
+        print('value error')
+    print(e)
+</code></pre>
+
+<p>在Py3里，在except块的作用域以外，异常对象（exception object）是不能被访问的。如果不这样的话，Python会在内存的堆栈里保持一个引用链直到Python的垃圾处理将这些引用从内存中清除掉</p>
+
+<p>所以在py3中可以修改为</p>
+
+<pre><code>def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except ValueError as e:
+        exception = e
+        print('value error')
+    print(exception)
+</code></pre>
+
 <h2 id="python">python设计模式</h2>
 
 <ol>
@@ -1379,7 +1520,7 @@ json 不支持bytes对象。
 <br>
     <div id="disqus_thread"></div>
 	<div class="footer">
-		<p>© Copyright 2014 by huangnauh, Designed by huangnauh</p>
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
 	</div>
 </div>
 <script src="main.js"></script>

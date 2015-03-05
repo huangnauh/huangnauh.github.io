@@ -142,6 +142,7 @@ def bubble_sort(a):
 ## 第四节 希尔排序
 
 在插入排序基础上，适当的选取gap。
+希尔排序不稳定
 
 最差时间复杂度：根据步长串行的不同而不同。
 已知最好的: O(n\log^2 n)
@@ -268,10 +269,14 @@ def merge_sort(a):
     merge(left,right)
 ```
 ##第六节 快速排序
+
 选择一个基准pivot，大于基准在后，小于基准在前，称之为partition操作，递归地把两个子数列排序
 
 分两种方式：是否原地(in-place)分区
 
+快速排序不稳定
+
+在平均状况下，排序n个项目要Ο(nlog(n))次比较。在最坏状况下则需要Ο(n^2)次比较，但这种状况并不常见
 
 ```
 int partition(int a[],int n){
@@ -342,6 +347,9 @@ def q_sort(a):
 ## 第七节 堆排序
 
 升序排列，需要建立最大堆
+
+堆排序不稳定
+堆排序的平均时间复杂度为O(nlog(n))
 ```
 void max_heap_fixdown(int a[],int i,int n){
     int parent = i;
@@ -501,7 +509,8 @@ Python的timsort [Understanding timsort](http://www.drmaciver.com/2010/01/unders
 
 <h2 id="">第四节 希尔排序</h2>
 
-<p>在插入排序基础上，适当的选取gap。</p>
+<p>在插入排序基础上，适当的选取gap。
+希尔排序不稳定</p>
 
 <p>最差时间复杂度：根据步长串行的不同而不同。
 已知最好的: O(n\log^2 n)</p>
@@ -628,6 +637,10 @@ void merge_sort(int a[],int n){
 
 <p>分两种方式：是否原地(in-place)分区</p>
 
+<p>快速排序不稳定</p>
+
+<p>在平均状况下，排序n个项目要Ο(nlog(n))次比较。在最坏状况下则需要Ο(n^2)次比较，但这种状况并不常见</p>
+
 <pre><code>int partition(int a[],int n){
     int p = a[0];
     int first = 1;
@@ -695,6 +708,9 @@ void q_sort(int a[],int n){
 <h2 id="">第七节 堆排序</h2>
 
 <p>升序排列，需要建立最大堆</p>
+
+<p>堆排序不稳定
+堆排序的平均时间复杂度为O(nlog(n))</p>
 
 <pre><code>void max_heap_fixdown(int a[],int i,int n){
     int parent = i;

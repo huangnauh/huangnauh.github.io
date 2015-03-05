@@ -163,7 +163,7 @@ mysql -uroot -proot -h127.0.0.1
 create(alter/drop) database huang
 ```
 
-数据类型:
+### 数据类型:
 ```
 整数 tinyint smallint int 等
 浮点数
@@ -171,7 +171,7 @@ create(alter/drop) database huang
 字符类型 char varchar tinytext text mediumtext enum set
 ```
 
-数据表：
+### 数据表：
 父表和子表必须使用相同的存储引擎InnoDB
 ```
 default-storage-engine=INNODB
@@ -212,7 +212,7 @@ foreign key (pid) references p (id) on delete cascade);
 】
 ```
 
-约束：
+### 约束：
 ```
 primary key
 unique key
@@ -390,7 +390,7 @@ on t1.goods_name = t2.goods_name
 where t1.goods_id > t2.goods_id;
 ```
 
-字符函数
+### 字符函数
 ```
 select contact(first_name,last_name) as fullname from test;
 select contact_ws(' ',first_name,last_name) as fullname from test;
@@ -409,7 +409,7 @@ select * from t where name like "%1%%" escape '1';
 date_add('2014-3-4',interval 365 day);
 ```
 
-自定义函数
+### 自定义函数
 函数体由合法的sql语句构成，如果是符合结果，用begin,end
 ```
 create function f2(n1 smallint unsigned,n2 smallint unsigned)
@@ -426,7 +426,7 @@ return last_insert_id();
 end//
 ```
 
-存储过程
+### 存储过程
 ```
 存储过程经常对表进行操作，而很少用函数对表进行操作
 存储过程可以返回多个值，而函数只能返回一个值
@@ -465,7 +465,7 @@ select count(type_id) from tdb_goods_types into outnum;
 end//
 ```
 
-存储引擎（表类型）
+### 存储引擎（表类型）
 
 mysql讲数据以不同的技术存储在文件或内存中，这个技术称为存储引擎，包括存储机制、索引技巧、锁定水平
 mysql支持以下存储引擎MyISAM,InnoDB,Memory,CSV,Archive
@@ -497,72 +497,95 @@ id smallint unsigned
 alter table tp1 engine = InnoDB;
 ```
 
-数据库优化
+## 数据库优化
 避免出现页面访问错误：由于数据库连接timeout产生5xx错误，慢查询造成页面无法加载，由于事务阻塞(可能因为锁)造成数据无法提交
 增加数据库的稳定性
 
 结构良好的sql及有效的索引，数据库表结构(根据范式)，系统配置(打开文件数。mysql是基于文件的，每查询一个表都要打开一些文件)，硬件(cpu的选择,大内存,io设备的选择)
 
-sql语句优化
+### sql语句优化
 通过mysql的慢查询日志对有效率问题的sql进行监控
-时间、主机信息、执行信息(查询时间，锁时间等)、执行时间戳、sql内容
+`时间、主机信息、执行信息(查询时间，锁时间等)、执行时间戳、sql内容`
 对慢查询日志进行分析的工具
-mysqldumpslow -t 3 log执行次数、时间 sql语句
+`mysqldumpslow -t 3 log`执行次数、时间 sql语句
 
-
-pt-query-digest log 比上面的具体
-查询总数，不同的查询数量，查询时间范围
+`pt-query-digest log` 
+查询总数，不同的查询数量，查询时间范围,
 执行时间和锁时间(最大，最小 95%)，具体sql的时间
+
 关注点：
-1、查询次数多且每次查询占用时间长的sql
-2、io大的sql：分析中的Rows examine项，扫描行数越多，io消耗越大
-3、未命中索引的sql：分析中Rows examine和Rows Send的对比，如果扫描行数远远大于发送的行数，说明命中率并不高
+
+1. 查询次数多且每次查询占用时间长的sql
+2. io大的sql：分析中的Rows examine项，扫描行数越多，io消耗越大
+3. 未命中索引的sql：分析中Rows examine和Rows Send的对比，如果扫描行数远远大于发送的行数，说明命中率并不高
 
 使用explain查询sql的执行计划
-
+```
 explain select * from tdb_goods_types where type_id>2 and type_id<5;
-本例中type:range,possible_keys:primary,key:primary,key_len:2，extra:Using where; Using index
-返回的type显示连接使用了何种类型，从最好到最差const(对主键和唯一索引的查找)/eq_reg(主键和唯一索引的范围查找)/ref(基于索引的查找)/range(索引的范围查找)/index(索引的扫描)/ALL(表扫描)
+本例中:
+type:range,
+possible_keys:primary,
+key:primary,
+key_len:2，
+extra:Using where; Using index
+
 key为实际使用的索引
 key_len：mysql查询以页为单位，长度越小，索引数量越多，效果越好
 extra:
-using filesort 使用了外部文件需要优化
+using filesort 使用了文件排序需要优化
 using temporary使用临时表需要优化
+```
+返回的type显示连接使用了何种类型，从最好到最差`const`(对主键和唯一索引的查找)/`eq_reg`(主键和唯一索引的范围查找)/`ref`(基于索引的查找)/`range`(索引的范围查找)/`index`(索引的扫描)/`ALL`(表扫描)
 
-max查询可以通过覆盖索引(完全通过索引来找到记录)来查询优化
+
+`max查询`可以通过`覆盖索引`来查询优化
+```
 explain select max(goods_price) from tdb_goods\G;
 table: tdb_goods
 type: ALL
 rows: 20
 Extra: 
+```
 
+```
 create index idx_price on tdb_goods(goods_price);
 explain select max(goods_price) from tdb_goods\G;
 table: NULL 不查询表，因为索引是顺序排列的，max是最后一个
 type: NULL
 rows: NULL
 Extra: Select tables optimized away
+```
 
+```
 select count(*),count(id) from t;
 count(id)不包含id为null的行，*包含所有行
 select count(goods_price=6888.0 or null) from tdb_goods;
 结果是价格为6888.0的行数
 select count(goods_price=6888.0) from tdb_goods;
 结果是所有行数
+```
 
 把子查询优化优化成连接join查询
+```
 select * from t where t.id in (select t1.tid from t1)
+```
 需要注意的是join会出现重复数据(因为一对多的关系)
 用distinct来去重复
+```
 select distinct t.id from t join t1 on t.id = t1.tid;
+```
 
-groupby查询用到临时表和文件排序
+`group by查询`用到`临时表`和`文件排序`
+```
 select actor.name,count(*)
 from film_actor
 join actor on film_actor.actor_id = actor.actor_id
 group by film_actor.actor_id
+```
+
 改写：先查询得到id和数量的表，再和id与name的表join
 用了索引取代临时表和文件排序
+```
 select actor.name,c.cnt
 from actor join (
 select actor_id,count(*) as cnt
@@ -570,64 +593,79 @@ from film_actor
 group by actor_id
 ) as c
 on film_actor.actor_id = actor.actor_id
+```
 
 limit常用于分页处理，时常伴随order by，会使用filesorts导大量io问题
+```
 select goods_id,goods_name from tdb_goods order by goods_name limit 200,5;
-会使用文件排序(看执行计划(用explain))
+```
+会使用`文件排序`(看执行计划(用explain))
+
 优化:
-1、使用有索引的或者主键进行order by
+
+1. 使用有索引的或者主键进行order by
 这样有个问题，从大数字开始时，扫描行(205行)也会增加
-2、记录上次返回的主键，在下次查询中使用主键过滤
+2. 记录上次返回的主键，在下次查询中使用主键过滤
+```
 select goods_id,goods_name from tdb_goods where goods_id >=200 and goods_id<210  order by goods_id limit 0,5;
+```
 扫描行为5行
 
-索引
-如果索引包含所有列，则称之为覆盖索引
-重复索引是指相同的列以相同的顺序建立的同类型索引，导致效率变低，比如primary key和unique同时索引
+### 索引
+如果索引包含所有列，则称之为覆盖索引。
+
+重复索引是指相同的列以相同的顺序建立的同类型索引，导致效率变低，比如primary key和unique同时索引。
+
 冗余索引是指多个索引的前缀相同，或者联合索引中包含了主键索引(因为InnoDB每个索引都会包含主键)，比如id primary key和key(name,id)
-搜索冗余索引
+搜索冗余索引。
+```
 From statistics a join statistics b ON
 a.seq_in_index = b.seq_in_index and a.column_name = b.column_name
 where a.seq_in_index = 1 and a.index_name <> b.index_name
+```
 或者使用工具 pt-duplicate-key-checker
 
 
 在where从句，group by从句，order by从句，on从句中出现的列
 索引字段越小越好
 离散度大的列放到联合索引的前面
+```
 select * from payment where staff_id = 2 and customer_id = 584;
 select count(distinct customer_id),count(distinct staff_id) from payment;
+```
 值越大离散度越大，可选择性越高
-建立联合索引index(customer_id,staff_id)
+建立联合索引`index(customer_id, staff_id)`
 
-通过慢查询 pt-index-usage log分析索引的使用情况，以便删除
+通过慢查询 `pt-index-usage log`分析索引的使用情况，以便删除
 
-表结构优化
-使用简单的数据结构。int比varchar处理简单
-尽可能使用not null定义字段，允许null需要额外字段来存储
-尽量少用text,非用不可时考虑分表，提高主表效率
+### 表结构优化
+使用简单的数据结构。int比varchar处理简单。
+尽可能使用not null定义字段，允许null需要额外字段来存储。
+尽量少用text,非用不可时考虑分表，提高主表效率。
 
-用int类型进行时间存储，使用from_unixtime(int)和unix_timestamp('2014-1-1 13:23:12')
-用bigint存储ip地址,使用inet_aton() inet_ntoa()
+用int类型进行时间存储，使用`from_unixtime(int)`和`unix_timestamp('2014-1-1 13:23:12')`
+用bigint存储ip地址,使用`inet_aton()` `inet_ntoa()`
 
-范式化设计
+### 范式化
 第三范式：要求数据表中不存在非关键字段对任意候选关键字段的传递函数依赖
 解决：数据冗余 写入异常
 
 反范式化：以空间换取时间，因为关联表会影响效率
 
-表的垂直拆分
-把不常用字段放入一个表
-把大字段单独放入一个表
-把常用字段放入一个表
+表的垂直拆分:
+把不常用字段放入一个表,
+把大字段单独放入一个表,
+把常用字段放入一个表.
 
-表的水平拆分
-按id进行hash，比如mod(id,n)分成n张表
-跨分区表的数据查询
-统计及后台报表操作
+表的水平拆分:
+按id进行hash，比如mod(id,n)分成n张表,
+跨分区表的数据查询,
+统计及后台报表操作.
 
 操作系统优化：tcp和打开文件限制
-配置文件优化：my.cnf my.ini
+
+配置文件优化：`my.cnf` `my.ini`
+```
 innodb_buffer_pool_size 缓冲池大小，总内存的75%
 innodb_buffer_pool_instances 缓冲池个数
 innodb_log_buffer_size 日志缓冲区大小，存每秒事务的日志
@@ -636,6 +674,7 @@ innodb_read_io_threads innodb_write_io_threads
 读写io线程的数目
 innodb_file_per_table默认off，所有表使用共享表空间，on分成多个文件
 innodb_stats_on_metadata刷新表的统计信息以便优化器使用正确的索引，设为off，在show时不刷新，人为刷新
+```
 
 配置向导工具 percona
 
@@ -643,42 +682,48 @@ innodb_stats_on_metadata刷新表的统计信息以便优化器使用正确的�
 
 
 
-第二十一章 SQLite
+## SQLite
 SQLite是一种嵌入式数据库，它的数据库就是一个文件
 Python就内置了SQLite3
+```
 conn = sqlite3.connect('test.db')
 cursor = conn.cursor()
 cursor.execute('select * from user where id=?', '1')
+```
 使用Cursor对象执行insert，update，delete语句时，执行结果由rowcount返回影响的行数，就可以拿到执行结果。
-使用Cursor对象执行select语句时，通过featchall()可以拿到结果集。结果集是一个list，每个元素都是一个tuple，对应一行记录
+使用Cursor对象执行select语句时，通过`featchall()`可以拿到结果集。结果集是一个list，每个元素都是一个tuple，对应一行记录
+```
 values = cursor.fetchall()
 cursor.close()
 conn.close()
+```
 
-1、reserved LOCK
-RESERVED锁意味着进程将要对数据库进行写操作。某一时刻只能有一个RESERVED 
-RESERVED锁和SHARED锁可以共存，而且可以对数据库加新的SHARED锁。
+####1. `reserved LOCK`
+`RESERVED锁`意味着进程将要对数据库进行写操作。某一时刻只能有一个RESERVED锁
+`RESERVED锁`和`SHARED锁`可以共存，而且可以对数据库加新的`SHARED锁`。
 
-2、pending LOCK
-LOCK意味着进程已经完成缓存中的数据修改，并想立即将更新写入磁盘
-它将等待此时已经存在的读锁事务完成，但是不允许对数据库加新的SHARED LOCK
+####2. `pending LOCK`
+`pending LOCK`意味着进程已经完成缓存中的数据修改，并想立即将更新写入磁盘.
+它将等待此时已经存在的读锁事务完成，但是不允许对数据库加新的`SHARED LOCK`
 
-3、exclusive LOCK
-SQLite只有库级排斥锁（EXCLUSIVE LOCK）,
+####3. `exclusive LOCK`
+SQLite只有库级排斥锁（`EXCLUSIVE LOCK`）,
 
-SQLite有三种不同的事务类型.事务可以从DEFERRED，IMMEDIATE或者EXCLUSIVE，一个事务的类型在BEGIN命令中指定：
-BEGIN [ DEFERRED | IMMEDIATE | EXCLUSIVE ] TRANSACTION；
+SQLite有三种不同的事务类型.
+事务可以从`DEFERRED`，`IMMEDIATE`或者`EXCLUSIVE`，一个事务的类型在`BEGIN命令`中指定：
+`BEGIN [ DEFERRED | IMMEDIATE | EXCLUSIVE ] TRANSACTION；`
 
 deferred事务,不获取任何锁，直到它需要锁的时候。
-Immediate事务会试着获取RESERVED LOCK。如果成功，BEGIN IMMEDIATE保证没有别的连接可以写数据库。但是，别的连接可以对数据库进行读操作，但是RESERVED LOCK会阻止其它的连接BEGIN IMMEDIATE或者BEGIN EXCLUSIVE命令，SQLite会返回SQLITE_BUSY错误。
-这时你就可以对数据库进行修改操作，但是你不能提交，当你COMMIT时，会返回SQLITE_BUSY错误，这意味着还有其它的读事务没有完成，得等它们执行完后才能提交事务。
-Exclusive事务会试着获取对数据库的EXCLUSIVE锁。这与IMMEDIATE类似，但是一旦成功，EXCLUSIVE事务保证没有其它的连接，所以就可对数据库进行读写操作了。
 
-SQLAlchemy
+Immediate事务会试着获取`RESERVED LOCK`。如果成功，`BEGIN IMMEDIATE`保证没有别的连接可以写数据库。但是，别的连接可以对数据库进行读操作，但是`RESERVED LOCK`会阻止其它的连接`BEGIN IMMEDIATE`或者`BEGIN EXCLUSIVE`命令，SQLite会返回`SQLITE_BUSY错误`。
+这时你就可以对数据库进行修改操作，但是你不能提交，当你COMMIT时，会返回`SQLITE_BUSY错误`，这意味着还有其它的读事务没有完成，得等它们执行完后才能提交事务。
+
+Exclusive事务会试着获取对数据库的`EXCLUSIVE锁`。这与IMMEDIATE类似，但是一旦成功，EXCLUSIVE事务保证没有其它的连接，所以就可对数据库进行读写操作了。
+
+## SQLAlchemy
 把关系数据库的表结构映射到对象上
-ORM技术：Object-Relational Mapping
+ORM技术：`Object-Relational Mapping`
 ORM框架的作用就是把数据库表的一行记录与一个对象互相做自动转换
-
 <!-- markdown end -->
 </div>
 <div class="entry" id="main">
@@ -816,7 +861,7 @@ WHERE some_column=some_value;
 create(alter/drop) database huang
 </code></pre>
 
-<p>数据类型:</p>
+<h3 id="">数据类型:</h3>
 
 <pre><code>整数 tinyint smallint int 等
 浮点数
@@ -824,8 +869,9 @@ create(alter/drop) database huang
 字符类型 char varchar tinytext text mediumtext enum set
 </code></pre>
 
-<p>数据表：
-父表和子表必须使用相同的存储引擎InnoDB</p>
+<h3 id="">数据表：</h3>
+
+<p>父表和子表必须使用相同的存储引擎InnoDB</p>
 
 <pre><code>default-storage-engine=INNODB
 </code></pre>
@@ -864,7 +910,7 @@ foreign key (pid) references p (id) on delete cascade);
 】
 </code></pre>
 
-<p>约束：</p>
+<h3 id="">约束：</h3>
 
 <pre><code>primary key
 unique key
@@ -1039,7 +1085,7 @@ on t1.goods_name = t2.goods_name
 where t1.goods_id &gt; t2.goods_id;
 </code></pre>
 
-<p>字符函数</p>
+<h3 id="">字符函数</h3>
 
 <pre><code>select contact(first_name,last_name) as fullname from test;
 select contact_ws(' ',first_name,last_name) as fullname from test;
@@ -1058,8 +1104,9 @@ select * from t where name like "%1%%" escape '1';
 date_add('2014-3-4',interval 365 day);
 </code></pre>
 
-<p>自定义函数
-函数体由合法的sql语句构成，如果是符合结果，用begin,end</p>
+<h3 id="">自定义函数</h3>
+
+<p>函数体由合法的sql语句构成，如果是符合结果，用begin,end</p>
 
 <pre><code>create function f2(n1 smallint unsigned,n2 smallint unsigned)
 returns float(10,2) unsigned
@@ -1075,7 +1122,7 @@ return last_insert_id();
 end//
 </code></pre>
 
-<p>存储过程</p>
+<h3 id="">存储过程</h3>
 
 <pre><code>存储过程经常对表进行操作，而很少用函数对表进行操作
 存储过程可以返回多个值，而函数只能返回一个值
@@ -1114,7 +1161,7 @@ select count(type_id) from tdb_goods_types into outnum;
 end//
 </code></pre>
 
-<p>存储引擎（表类型）</p>
+<h3 id="">存储引擎（表类型）</h3>
 
 <p>mysql讲数据以不同的技术存储在文件或内存中，这个技术称为存储引擎，包括存储机制、索引技巧、锁定水平
 mysql支持以下存储引擎MyISAM,InnoDB,Memory,CSV,Archive</p>
@@ -1146,180 +1193,245 @@ id smallint unsigned
 alter table tp1 engine = InnoDB;
 </code></pre>
 
-<p>数据库优化
-避免出现页面访问错误：由于数据库连接timeout产生5xx错误，慢查询造成页面无法加载，由于事务阻塞(可能因为锁)造成数据无法提交
+<h2 id="">数据库优化</h2>
+
+<p>避免出现页面访问错误：由于数据库连接timeout产生5xx错误，慢查询造成页面无法加载，由于事务阻塞(可能因为锁)造成数据无法提交
 增加数据库的稳定性</p>
 
 <p>结构良好的sql及有效的索引，数据库表结构(根据范式)，系统配置(打开文件数。mysql是基于文件的，每查询一个表都要打开一些文件)，硬件(cpu的选择,大内存,io设备的选择)</p>
 
-<p>sql语句优化
-通过mysql的慢查询日志对有效率问题的sql进行监控
-时间、主机信息、执行信息(查询时间，锁时间等)、执行时间戳、sql内容
-对慢查询日志进行分析的工具
-mysqldumpslow -t 3 log执行次数、时间 sql语句</p>
+<h3 id="sql">sql语句优化</h3>
 
-<p>pt-query-digest log 比上面的具体
-查询总数，不同的查询数量，查询时间范围
-执行时间和锁时间(最大，最小 95%)，具体sql的时间
-关注点：
-1、查询次数多且每次查询占用时间长的sql
-2、io大的sql：分析中的Rows examine项，扫描行数越多，io消耗越大
-3、未命中索引的sql：分析中Rows examine和Rows Send的对比，如果扫描行数远远大于发送的行数，说明命中率并不高</p>
+<p>通过mysql的慢查询日志对有效率问题的sql进行监控
+<code>时间、主机信息、执行信息(查询时间，锁时间等)、执行时间戳、sql内容</code>
+对慢查询日志进行分析的工具
+<code>mysqldumpslow -t 3 log</code>执行次数、时间 sql语句</p>
+
+<p><code>pt-query-digest log</code> 
+查询总数，不同的查询数量，查询时间范围,
+执行时间和锁时间(最大，最小 95%)，具体sql的时间</p>
+
+<p>关注点：</p>
+
+<ol>
+<li>查询次数多且每次查询占用时间长的sql</li>
+<li>io大的sql：分析中的Rows examine项，扫描行数越多，io消耗越大</li>
+<li>未命中索引的sql：分析中Rows examine和Rows Send的对比，如果扫描行数远远大于发送的行数，说明命中率并不高</li>
+</ol>
 
 <p>使用explain查询sql的执行计划</p>
 
-<p>explain select * from tdb<em>goods</em>types where type<em>id&gt;2 and type</em>id&lt;5;
-本例中type:range,possible<em>keys:primary,key:primary,key</em>len:2，extra:Using where; Using index
-返回的type显示连接使用了何种类型，从最好到最差const(对主键和唯一索引的查找)/eq<em>reg(主键和唯一索引的范围查找)/ref(基于索引的查找)/range(索引的范围查找)/index(索引的扫描)/ALL(表扫描)
-key为实际使用的索引
-key</em>len：mysql查询以页为单位，长度越小，索引数量越多，效果越好
-extra:
-using filesort 使用了外部文件需要优化
-using temporary使用临时表需要优化</p>
+<pre><code>explain select * from tdb_goods_types where type_id&gt;2 and type_id&lt;5;
+本例中:
+type:range,
+possible_keys:primary,
+key:primary,
+key_len:2，
+extra:Using where; Using index
 
-<p>max查询可以通过覆盖索引(完全通过索引来找到记录)来查询优化
-explain select max(goods<em>price) from tdb</em>goods\G;
+key为实际使用的索引
+key_len：mysql查询以页为单位，长度越小，索引数量越多，效果越好
+extra:
+using filesort 使用了文件排序需要优化
+using temporary使用临时表需要优化
+</code></pre>
+
+<p>返回的type显示连接使用了何种类型，从最好到最差<code>const</code>(对主键和唯一索引的查找)/<code>eq_reg</code>(主键和唯一索引的范围查找)/<code>ref</code>(基于索引的查找)/<code>range</code>(索引的范围查找)/<code>index</code>(索引的扫描)/<code>ALL</code>(表扫描)</p>
+
+<p><code>max查询</code>可以通过<code>覆盖索引</code>来查询优化</p>
+
+<pre><code>explain select max(goods_price) from tdb_goods\G;
 table: tdb_goods
 type: ALL
 rows: 20
-Extra: </p>
+Extra: 
+</code></pre>
 
-<p>create index idx<em>price on tdb</em>goods(goods<em>price);
-explain select max(goods</em>price) from tdb_goods\G;
+<pre><code>create index idx_price on tdb_goods(goods_price);
+explain select max(goods_price) from tdb_goods\G;
 table: NULL 不查询表，因为索引是顺序排列的，max是最后一个
 type: NULL
 rows: NULL
-Extra: Select tables optimized away</p>
+Extra: Select tables optimized away
+</code></pre>
 
-<p>select count(<em>),count(id) from t;
-count(id)不包含id为null的行，</em>包含所有行
-select count(goods<em>price=6888.0 or null) from tdb</em>goods;
+<pre><code>select count(*),count(id) from t;
+count(id)不包含id为null的行，*包含所有行
+select count(goods_price=6888.0 or null) from tdb_goods;
 结果是价格为6888.0的行数
-select count(goods<em>price=6888.0) from tdb</em>goods;
-结果是所有行数</p>
+select count(goods_price=6888.0) from tdb_goods;
+结果是所有行数
+</code></pre>
 
-<p>把子查询优化优化成连接join查询
-select * from t where t.id in (select t1.tid from t1)
-需要注意的是join会出现重复数据(因为一对多的关系)
-用distinct来去重复
-select distinct t.id from t join t1 on t.id = t1.tid;</p>
+<p>把子查询优化优化成连接join查询</p>
 
-<p>groupby查询用到临时表和文件排序
-select actor.name,count(<em>)
+<pre><code>select * from t where t.id in (select t1.tid from t1)
+</code></pre>
+
+<p>需要注意的是join会出现重复数据(因为一对多的关系)
+用distinct来去重复</p>
+
+<pre><code>select distinct t.id from t join t1 on t.id = t1.tid;
+</code></pre>
+
+<p><code>group by查询</code>用到<code>临时表</code>和<code>文件排序</code></p>
+
+<pre><code>select actor.name,count(*)
 from film_actor
 join actor on film_actor.actor_id = actor.actor_id
 group by film_actor.actor_id
-改写：先查询得到id和数量的表，再和id与name的表join
-用了索引取代临时表和文件排序
-select actor.name,c.cnt
+</code></pre>
+
+<p>改写：先查询得到id和数量的表，再和id与name的表join
+用了索引取代临时表和文件排序</p>
+
+<pre><code>select actor.name,c.cnt
 from actor join (
-select actor_id,count(</em>) as cnt
-from film<em>actor
-group by actor</em>id
+select actor_id,count(*) as cnt
+from film_actor
+group by actor_id
 ) as c
-on film<em>actor.actor</em>id = actor.actor_id</p>
+on film_actor.actor_id = actor.actor_id
+</code></pre>
 
-<p>limit常用于分页处理，时常伴随order by，会使用filesorts导大量io问题
-select goods<em>id,goods</em>name from tdb<em>goods order by goods</em>name limit 200,5;
-会使用文件排序(看执行计划(用explain))
-优化:
-1、使用有索引的或者主键进行order by
-这样有个问题，从大数字开始时，扫描行(205行)也会增加
-2、记录上次返回的主键，在下次查询中使用主键过滤
-select goods<em>id,goods</em>name from tdb<em>goods where goods</em>id &gt;=200 and goods<em>id&lt;210  order by goods</em>id limit 0,5;
-扫描行为5行</p>
+<p>limit常用于分页处理，时常伴随order by，会使用filesorts导大量io问题</p>
 
-<p>索引
-如果索引包含所有列，则称之为覆盖索引
-重复索引是指相同的列以相同的顺序建立的同类型索引，导致效率变低，比如primary key和unique同时索引
-冗余索引是指多个索引的前缀相同，或者联合索引中包含了主键索引(因为InnoDB每个索引都会包含主键)，比如id primary key和key(name,id)
-搜索冗余索引
-From statistics a join statistics b ON
-a.seq<em>in</em>index = b.seq<em>in</em>index and a.column<em>name = b.column</em>name
-where a.seq<em>in</em>index = 1 and a.index<em>name &lt;&gt; b.index</em>name
-或者使用工具 pt-duplicate-key-checker</p>
+<pre><code>select goods_id,goods_name from tdb_goods order by goods_name limit 200,5;
+</code></pre>
+
+<p>会使用<code>文件排序</code>(看执行计划(用explain))</p>
+
+<p>优化:</p>
+
+<ol>
+<li>使用有索引的或者主键进行order by
+这样有个问题，从大数字开始时，扫描行(205行)也会增加</li>
+<li>记录上次返回的主键，在下次查询中使用主键过滤</li>
+</ol>
+
+<pre><code>select goods_id,goods_name from tdb_goods where goods_id &gt;=200 and goods_id&lt;210  order by goods_id limit 0,5;
+</code></pre>
+
+<p>扫描行为5行</p>
+
+<h3 id="">索引</h3>
+
+<p>如果索引包含所有列，则称之为覆盖索引。</p>
+
+<p>重复索引是指相同的列以相同的顺序建立的同类型索引，导致效率变低，比如primary key和unique同时索引。</p>
+
+<p>冗余索引是指多个索引的前缀相同，或者联合索引中包含了主键索引(因为InnoDB每个索引都会包含主键)，比如id primary key和key(name,id)
+搜索冗余索引。</p>
+
+<pre><code>From statistics a join statistics b ON
+a.seq_in_index = b.seq_in_index and a.column_name = b.column_name
+where a.seq_in_index = 1 and a.index_name &lt;&gt; b.index_name
+</code></pre>
+
+<p>或者使用工具 pt-duplicate-key-checker</p>
 
 <p>在where从句，group by从句，order by从句，on从句中出现的列
 索引字段越小越好
-离散度大的列放到联合索引的前面
-select * from payment where staff<em>id = 2 and customer</em>id = 584;
-select count(distinct customer<em>id),count(distinct staff</em>id) from payment;
-值越大离散度越大，可选择性越高
-建立联合索引index(customer<em>id,staff</em>id)</p>
+离散度大的列放到联合索引的前面</p>
 
-<p>通过慢查询 pt-index-usage log分析索引的使用情况，以便删除</p>
+<pre><code>select * from payment where staff_id = 2 and customer_id = 584;
+select count(distinct customer_id),count(distinct staff_id) from payment;
+</code></pre>
 
-<p>表结构优化
-使用简单的数据结构。int比varchar处理简单
-尽可能使用not null定义字段，允许null需要额外字段来存储
-尽量少用text,非用不可时考虑分表，提高主表效率</p>
+<p>值越大离散度越大，可选择性越高
+建立联合索引<code>index(customer_id, staff_id)</code></p>
 
-<p>用int类型进行时间存储，使用from<em>unixtime(int)和unix</em>timestamp('2014-1-1 13:23:12')
-用bigint存储ip地址,使用inet<em>aton() inet</em>ntoa()</p>
+<p>通过慢查询 <code>pt-index-usage log</code>分析索引的使用情况，以便删除</p>
 
-<p>范式化设计
-第三范式：要求数据表中不存在非关键字段对任意候选关键字段的传递函数依赖
+<h3 id="">表结构优化</h3>
+
+<p>使用简单的数据结构。int比varchar处理简单。
+尽可能使用not null定义字段，允许null需要额外字段来存储。
+尽量少用text,非用不可时考虑分表，提高主表效率。</p>
+
+<p>用int类型进行时间存储，使用<code>from_unixtime(int)</code>和<code>unix_timestamp('2014-1-1 13:23:12')</code>
+用bigint存储ip地址,使用<code>inet_aton()</code> <code>inet_ntoa()</code></p>
+
+<h3 id="">范式化</h3>
+
+<p>第三范式：要求数据表中不存在非关键字段对任意候选关键字段的传递函数依赖
 解决：数据冗余 写入异常</p>
 
 <p>反范式化：以空间换取时间，因为关联表会影响效率</p>
 
-<p>表的垂直拆分
-把不常用字段放入一个表
-把大字段单独放入一个表
-把常用字段放入一个表</p>
+<p>表的垂直拆分:
+把不常用字段放入一个表,
+把大字段单独放入一个表,
+把常用字段放入一个表.</p>
 
-<p>表的水平拆分
-按id进行hash，比如mod(id,n)分成n张表
-跨分区表的数据查询
-统计及后台报表操作</p>
+<p>表的水平拆分:
+按id进行hash，比如mod(id,n)分成n张表,
+跨分区表的数据查询,
+统计及后台报表操作.</p>
 
-<p>操作系统优化：tcp和打开文件限制
-配置文件优化：my.cnf my.ini
-innodb<em>buffer</em>pool<em>size 缓冲池大小，总内存的75%
-innodb</em>buffer<em>pool</em>instances 缓冲池个数
-innodb<em>log</em>buffer<em>size 日志缓冲区大小，存每秒事务的日志
-inoodb</em>flush<em>log</em>at<em>trx</em>commit 刷新到磁盘的方式，0每一秒才把变更刷新，1每次提交刷新到磁盘，2每次提交刷新到缓冲区，默认1安全
-innodb<em>read</em>io<em>threads innodb</em>write<em>io</em>threads
+<p>操作系统优化：tcp和打开文件限制</p>
+
+<p>配置文件优化：<code>my.cnf</code> <code>my.ini</code></p>
+
+<pre><code>innodb_buffer_pool_size 缓冲池大小，总内存的75%
+innodb_buffer_pool_instances 缓冲池个数
+innodb_log_buffer_size 日志缓冲区大小，存每秒事务的日志
+inoodb_flush_log_at_trx_commit 刷新到磁盘的方式，0每一秒才把变更刷新，1每次提交刷新到磁盘，2每次提交刷新到缓冲区，默认1安全
+innodb_read_io_threads innodb_write_io_threads
 读写io线程的数目
-innodb<em>file</em>per<em>table默认off，所有表使用共享表空间，on分成多个文件
-innodb</em>stats<em>on</em>metadata刷新表的统计信息以便优化器使用正确的索引，设为off，在show时不刷新，人为刷新</p>
+innodb_file_per_table默认off，所有表使用共享表空间，on分成多个文件
+innodb_stats_on_metadata刷新表的统计信息以便优化器使用正确的索引，设为off，在show时不刷新，人为刷新
+</code></pre>
 
 <p>配置向导工具 percona</p>
 
-<p>第二十一章 SQLite
-SQLite是一种嵌入式数据库，它的数据库就是一个文件
-Python就内置了SQLite3
-conn = sqlite3.connect('test.db')
+<h2 id="sqlite">SQLite</h2>
+
+<p>SQLite是一种嵌入式数据库，它的数据库就是一个文件
+Python就内置了SQLite3</p>
+
+<pre><code>conn = sqlite3.connect('test.db')
 cursor = conn.cursor()
 cursor.execute('select * from user where id=?', '1')
-使用Cursor对象执行insert，update，delete语句时，执行结果由rowcount返回影响的行数，就可以拿到执行结果。
-使用Cursor对象执行select语句时，通过featchall()可以拿到结果集。结果集是一个list，每个元素都是一个tuple，对应一行记录
-values = cursor.fetchall()
+</code></pre>
+
+<p>使用Cursor对象执行insert，update，delete语句时，执行结果由rowcount返回影响的行数，就可以拿到执行结果。
+使用Cursor对象执行select语句时，通过<code>featchall()</code>可以拿到结果集。结果集是一个list，每个元素都是一个tuple，对应一行记录</p>
+
+<pre><code>values = cursor.fetchall()
 cursor.close()
-conn.close()</p>
+conn.close()
+</code></pre>
 
-<p>1、reserved LOCK
-RESERVED锁意味着进程将要对数据库进行写操作。某一时刻只能有一个RESERVED 
-RESERVED锁和SHARED锁可以共存，而且可以对数据库加新的SHARED锁。</p>
+<h4 id="1reservedlock">1. <code>reserved LOCK</code></h4>
 
-<p>2、pending LOCK
-LOCK意味着进程已经完成缓存中的数据修改，并想立即将更新写入磁盘
-它将等待此时已经存在的读锁事务完成，但是不允许对数据库加新的SHARED LOCK</p>
+<p><code>RESERVED锁</code>意味着进程将要对数据库进行写操作。某一时刻只能有一个RESERVED锁
+<code>RESERVED锁</code>和<code>SHARED锁</code>可以共存，而且可以对数据库加新的<code>SHARED锁</code>。</p>
 
-<p>3、exclusive LOCK
-SQLite只有库级排斥锁（EXCLUSIVE LOCK）,</p>
+<h4 id="2pendinglock">2. <code>pending LOCK</code></h4>
 
-<p>SQLite有三种不同的事务类型.事务可以从DEFERRED，IMMEDIATE或者EXCLUSIVE，一个事务的类型在BEGIN命令中指定：
-BEGIN [ DEFERRED | IMMEDIATE | EXCLUSIVE ] TRANSACTION；</p>
+<p><code>pending LOCK</code>意味着进程已经完成缓存中的数据修改，并想立即将更新写入磁盘.
+它将等待此时已经存在的读锁事务完成，但是不允许对数据库加新的<code>SHARED LOCK</code></p>
 
-<p>deferred事务,不获取任何锁，直到它需要锁的时候。
-Immediate事务会试着获取RESERVED LOCK。如果成功，BEGIN IMMEDIATE保证没有别的连接可以写数据库。但是，别的连接可以对数据库进行读操作，但是RESERVED LOCK会阻止其它的连接BEGIN IMMEDIATE或者BEGIN EXCLUSIVE命令，SQLite会返回SQLITE<em>BUSY错误。
-这时你就可以对数据库进行修改操作，但是你不能提交，当你COMMIT时，会返回SQLITE</em>BUSY错误，这意味着还有其它的读事务没有完成，得等它们执行完后才能提交事务。
-Exclusive事务会试着获取对数据库的EXCLUSIVE锁。这与IMMEDIATE类似，但是一旦成功，EXCLUSIVE事务保证没有其它的连接，所以就可对数据库进行读写操作了。</p>
+<h4 id="3exclusivelock">3. <code>exclusive LOCK</code></h4>
 
-<p>SQLAlchemy
-把关系数据库的表结构映射到对象上
-ORM技术：Object-Relational Mapping
+<p>SQLite只有库级排斥锁（<code>EXCLUSIVE LOCK</code>）,</p>
+
+<p>SQLite有三种不同的事务类型.
+事务可以从<code>DEFERRED</code>，<code>IMMEDIATE</code>或者<code>EXCLUSIVE</code>，一个事务的类型在<code>BEGIN命令</code>中指定：
+<code>BEGIN [ DEFERRED | IMMEDIATE | EXCLUSIVE ] TRANSACTION；</code></p>
+
+<p>deferred事务,不获取任何锁，直到它需要锁的时候。</p>
+
+<p>Immediate事务会试着获取<code>RESERVED LOCK</code>。如果成功，<code>BEGIN IMMEDIATE</code>保证没有别的连接可以写数据库。但是，别的连接可以对数据库进行读操作，但是<code>RESERVED LOCK</code>会阻止其它的连接<code>BEGIN IMMEDIATE</code>或者<code>BEGIN EXCLUSIVE</code>命令，SQLite会返回<code>SQLITE_BUSY错误</code>。
+这时你就可以对数据库进行修改操作，但是你不能提交，当你COMMIT时，会返回<code>SQLITE_BUSY错误</code>，这意味着还有其它的读事务没有完成，得等它们执行完后才能提交事务。</p>
+
+<p>Exclusive事务会试着获取对数据库的<code>EXCLUSIVE锁</code>。这与IMMEDIATE类似，但是一旦成功，EXCLUSIVE事务保证没有其它的连接，所以就可对数据库进行读写操作了。</p>
+
+<h2 id="sqlalchemy">SQLAlchemy</h2>
+
+<p>把关系数据库的表结构映射到对象上
+ORM技术：<code>Object-Relational Mapping</code>
 ORM框架的作用就是把数据库表的一行记录与一个对象互相做自动转换</p>
 <!-- content end -->
 </div>

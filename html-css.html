@@ -52,7 +52,9 @@
 
 `<div>`标签的作用就相当于一个容器。一些独立的逻辑部分划分出来，放在一个`<div>`标签。逻辑部分是页面上相互关联的一组元素。如网页中独立的栏目版块，就是一个典型的逻辑部分。可以为这一个独立的逻辑部分设置一个名称，用id属性来为`<div>`提供唯一的名称。
 
-table标签是网页上的表格。整个表格以`<table>`标记开始。当表格内容非常多时，表格会下载一点显示一点，但如果加上`<tbody>`标签后，这个表格就要等表格内容全部下载完才会显示。`<tr>`表格的一行。`<td>`表格的一个单元格，一行中包含几对`<td>`，说明一行中就有几列。`<th>`表格表头。
+### table标签是网页上的表格。
+
+整个表格以`<table>`标记开始。当表格内容非常多时，表格会下载一点显示一点，但如果加上`<tbody>`标签后，这个表格就要等表格内容全部下载完才会显示。`<tr>`表格的一行。`<td>`表格的一个单元格，一行中包含几对`<td>`，说明一行中就有几列。`<th>`表格表头。
 table表格在没有添加css样式之前，在浏览器中显示是没有表格线的。表头，也就是th标签中的文本默认为粗体并且居中显示。
 给表格加入边框：
 ```
@@ -68,7 +70,7 @@ table tr td,th{border:1px solid #000;}
 标题:用以描述表格内容，标题的显示位置：表格上方。
 `<caption>标题文本</caption>`
 
-`<a>`标签，链接到一个页面
+### `<a>`标签，链接到一个页面
 语法：
 ```
 <a  href="目标网址" title="鼠标滑过显示的文本">链接显示的文本</a>
@@ -89,6 +91,70 @@ mailto在网页中链接Email地址。
 ```
 <img src="地址" alt="下载失败时的替换文本" title="为图片加入鼠标滑过时的提示文本">
 ```
+
+
+### 表单标签form，与用户交互
+
+语法：
+```
+<form   method="get/post"   action="服务器文件server.php">
+```
+表单控件（文本框、文本域、按钮、单选框、复选框等）
+
+input的type分为：文本输入框text、密码输入框password，单选框radio，复选框checkbox,提交按钮submit，重置按钮reset。
+```
+<input   type="text/password"   value="默认值(不常用)"    name="为控件命名以备后台程序使用"/>
+```
+
+```
+<input   type="submit/reset"   value="按钮上显示的文字"    name="为控件命名以备后台程序使用"/>
+```
+
+```
+<input   type="radio/checkbox"   value="值"    name="为控件命名以备后台程序使用"   checked="checked"/>
+
+checked：当设置 checked="checked" 时，该选项被默认选中
+```
+
+同一组的单选按钮,name取值一定要一致，这样同一组的单选按钮才可以起到单选的作用。
+
+
+文本域的两个属性可用css样式的width和height来代替：col用width、row用height来代替。
+语法：
+```
+<textarea rows="行数" cols="列数"></textarea>
+```
+
+下拉列表框，节省空间
+```
+<option value="提交值" selected="selected">选项</option>
+
+selected="selected"，则该选项就被默认选中。
+```
+
+在`<select>`标签中设置multiple="multiple"属性，就可以实现多选功能
+
+
+label标签。label标签不会向用户呈现任何特殊效果，它的作用是为鼠标用户改进了可用性。
+如果你在label标签内点击文本，就会触发此控件，自动选中和该label标签相关连的表单控件上。
+
+```
+<form method="post",action="server.php">
+    <lable for="username">用户名:<lable>
+    <input type="text" name="username"/>
+    <label for="pass">密码:</label>
+    <input type="password" name="pass" />
+    <lable>个人简介:</lable>
+    <textarea>输入：</textarea>
+    <label>性别:</label>
+    <label>男</label>
+    <input type="radio" value="1"  name="gender" />
+    <label>女</label>
+    <input type="radio" value="2"  name="gender" />
+</form>
+
+```
+
 <!-- markdown end -->
 </div>
 <div class="entry" id="main">
@@ -119,7 +185,9 @@ mailto在网页中链接Email地址。
 
 <p><code>&lt;div&gt;</code>标签的作用就相当于一个容器。一些独立的逻辑部分划分出来，放在一个<code>&lt;div&gt;</code>标签。逻辑部分是页面上相互关联的一组元素。如网页中独立的栏目版块，就是一个典型的逻辑部分。可以为这一个独立的逻辑部分设置一个名称，用id属性来为<code>&lt;div&gt;</code>提供唯一的名称。</p>
 
-<p>table标签是网页上的表格。整个表格以<code>&lt;table&gt;</code>标记开始。当表格内容非常多时，表格会下载一点显示一点，但如果加上<code>&lt;tbody&gt;</code>标签后，这个表格就要等表格内容全部下载完才会显示。<code>&lt;tr&gt;</code>表格的一行。<code>&lt;td&gt;</code>表格的一个单元格，一行中包含几对<code>&lt;td&gt;</code>，说明一行中就有几列。<code>&lt;th&gt;</code>表格表头。
+<h3 id="table">table标签是网页上的表格。</h3>
+
+<p>整个表格以<code>&lt;table&gt;</code>标记开始。当表格内容非常多时，表格会下载一点显示一点，但如果加上<code>&lt;tbody&gt;</code>标签后，这个表格就要等表格内容全部下载完才会显示。<code>&lt;tr&gt;</code>表格的一行。<code>&lt;td&gt;</code>表格的一个单元格，一行中包含几对<code>&lt;td&gt;</code>，说明一行中就有几列。<code>&lt;th&gt;</code>表格表头。
 table表格在没有添加css样式之前，在浏览器中显示是没有表格线的。表头，也就是th标签中的文本默认为粗体并且居中显示。
 给表格加入边框：</p>
 
@@ -135,8 +203,9 @@ table tr td,th{border:1px solid #000;}
 <p>标题:用以描述表格内容，标题的显示位置：表格上方。
 <code>&lt;caption&gt;标题文本&lt;/caption&gt;</code></p>
 
-<p><code>&lt;a&gt;</code>标签，链接到一个页面
-语法：</p>
+<h3 id="a"><code>&lt;a&gt;</code>标签，链接到一个页面</h3>
+
+<p>语法：</p>
 
 <pre><code>&lt;a  href="目标网址" title="鼠标滑过显示的文本"&gt;链接显示的文本&lt;/a&gt;
 </code></pre>
@@ -155,6 +224,63 @@ table tr td,th{border:1px solid #000;}
 </code></pre>
 
 <pre><code>&lt;img src="地址" alt="下载失败时的替换文本" title="为图片加入鼠标滑过时的提示文本"&gt;
+</code></pre>
+
+<h3 id="form">表单标签form，与用户交互</h3>
+
+<p>语法：</p>
+
+<pre><code>&lt;form   method="get/post"   action="服务器文件server.php"&gt;
+</code></pre>
+
+<p>表单控件（文本框、文本域、按钮、单选框、复选框等）</p>
+
+<p>input的type分为：文本输入框text、密码输入框password，单选框radio，复选框checkbox,提交按钮submit，重置按钮reset。</p>
+
+<pre><code>&lt;input   type="text/password"   value="默认值(不常用)"    name="为控件命名以备后台程序使用"/&gt;
+</code></pre>
+
+<pre><code>&lt;input   type="submit/reset"   value="按钮上显示的文字"    name="为控件命名以备后台程序使用"/&gt;
+</code></pre>
+
+<pre><code>&lt;input   type="radio/checkbox"   value="值"    name="为控件命名以备后台程序使用"   checked="checked"/&gt;
+
+checked：当设置 checked="checked" 时，该选项被默认选中
+</code></pre>
+
+<p>同一组的单选按钮,name取值一定要一致，这样同一组的单选按钮才可以起到单选的作用。</p>
+
+<p>文本域的两个属性可用css样式的width和height来代替：col用width、row用height来代替。
+语法：</p>
+
+<pre><code>&lt;textarea rows="行数" cols="列数"&gt;&lt;/textarea&gt;
+</code></pre>
+
+<p>下拉列表框，节省空间</p>
+
+<pre><code>&lt;option value="提交值" selected="selected"&gt;选项&lt;/option&gt;
+
+selected="selected"，则该选项就被默认选中。
+</code></pre>
+
+<p>在<code>&lt;select&gt;</code>标签中设置multiple="multiple"属性，就可以实现多选功能</p>
+
+<p>label标签。label标签不会向用户呈现任何特殊效果，它的作用是为鼠标用户改进了可用性。
+如果你在label标签内点击文本，就会触发此控件，自动选中和该label标签相关连的表单控件上。</p>
+
+<pre><code>&lt;form method="post",action="server.php"&gt;
+    &lt;lable for="username"&gt;用户名:&lt;lable&gt;
+    &lt;input type="text" name="username"/&gt;
+    &lt;label for="pass"&gt;密码:&lt;/label&gt;
+    &lt;input type="password" name="pass" /&gt;
+    &lt;lable&gt;个人简介:&lt;/lable&gt;
+    &lt;textarea&gt;输入：&lt;/textarea&gt;
+    &lt;label&gt;性别:&lt;/label&gt;
+    &lt;label&gt;男&lt;/label&gt;
+    &lt;input type="radio" value="1"  name="gender" /&gt;
+    &lt;label&gt;女&lt;/label&gt;
+    &lt;input type="radio" value="2"  name="gender" /&gt;
+&lt;/form&gt;
 </code></pre></li>
 <!-- content end -->
 </div>

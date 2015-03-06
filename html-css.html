@@ -1,0 +1,227 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+## 标签
+标签的用途、标签在浏览器中的默认样式。
+
+`<em>`表示强调，`<strong>`表示更强烈的强调。并且在浏览器中`<em>`默认用斜体表示，`<strong>`用粗体表示。两个标签相比，目前国内前端程序员更喜欢使用`<strong>`表示强调。
+
+`<span>`标签是没有语义的，它就是为了设置单独的样式用的。
+
+`<q>`标签，短文本引用。语义：引用别人的话。默认浏览器会对q标签自动添加双引号。
+
+`<blockquote>`标签，长文本引用。默认浏览器对`<blockquote>`标签的解析是缩进样式。
+
+`<br>`标签分行显示文本。在html中是忽略回车和空格的。输入空格，必须写入`&nbsp;`
+
+`<hr>`标签，添加水平横线
+
+`<address>`标签，为网页加入地址信息。默认在浏览器上显示的样式为斜体
+
+`<code>`标签，为网页加入一行代码。如果是多行代码，可以使用`<pre>`标签。`<pre>`标签不只是为显示计算机的源代码时用的，在需要在网页中预显示格式时都可以使用它
+
+使用ul，添加列表.ul-li在网页中显示的默认样式一般为：每项li前都自带一个圆点.
+
+使用ol，添加有序列表。每项<li>前都自带一个序号，序号默认从1开始。
+
+`<div>`标签的作用就相当于一个容器。一些独立的逻辑部分划分出来，放在一个`<div>`标签。逻辑部分是页面上相互关联的一组元素。如网页中独立的栏目版块，就是一个典型的逻辑部分。可以为这一个独立的逻辑部分设置一个名称，用id属性来为`<div>`提供唯一的名称。
+
+table标签是网页上的表格。整个表格以`<table>`标记开始。当表格内容非常多时，表格会下载一点显示一点，但如果加上`<tbody>`标签后，这个表格就要等表格内容全部下载完才会显示。`<tr>`表格的一行。`<td>`表格的一个单元格，一行中包含几对`<td>`，说明一行中就有几列。`<th>`表格表头。
+table表格在没有添加css样式之前，在浏览器中显示是没有表格线的。表头，也就是th标签中的文本默认为粗体并且居中显示。
+给表格加入边框：
+```
+<style type="text/css">
+table tr td,th{border:1px solid #000;}
+</style>
+```
+
+为表格添加标题和摘要.
+摘要：不会在浏览器中显示出来的。它的作用是增加表格的可读性(语义化)，使搜索引擎更好的读懂表格内容，还可以使屏幕阅读器更好的帮助特殊用户读取表格内容。
+语法：`<table summary="表格简介文本">`
+
+标题:用以描述表格内容，标题的显示位置：表格上方。
+`<caption>标题文本</caption>`
+
+`<a>`标签，链接到一个页面
+语法：
+```
+<a  href="目标网址" title="鼠标滑过显示的文本">链接显示的文本</a>
+```
+title属性的作用，鼠标滑过链接文字时会显示这个属性的文本内容。这个属性在实际网页开发中作用很大，主要方便搜索引擎了解链接地址的内容（语义化更友好）。
+默认文本加入a标签后，颜色就会变为蓝色，被点击过的文本颜色为紫色。
+在新建浏览器窗口中打开链接：
+```
+<a href="目标网址" target="_blank">click here!</a>
+```
+
+mailto在网页中链接Email地址。
+如果mailto后面同时有多个参数的话，第一个参数必须以“?”开头，后面的参数每一个都以“&”分隔。
+```
+<a href="mailto:a@bcd.com"?subject="sub"&body="xxxx"></a>
+```
+
+```
+<img src="地址" alt="下载失败时的替换文本" title="为图片加入鼠标滑过时的提示文本">
+```
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<h2 id="">标签</h2>
+
+<p>标签的用途、标签在浏览器中的默认样式。</p>
+
+<p><code>&lt;em&gt;</code>表示强调，<code>&lt;strong&gt;</code>表示更强烈的强调。并且在浏览器中<code>&lt;em&gt;</code>默认用斜体表示，<code>&lt;strong&gt;</code>用粗体表示。两个标签相比，目前国内前端程序员更喜欢使用<code>&lt;strong&gt;</code>表示强调。</p>
+
+<p><code>&lt;span&gt;</code>标签是没有语义的，它就是为了设置单独的样式用的。</p>
+
+<p><code>&lt;q&gt;</code>标签，短文本引用。语义：引用别人的话。默认浏览器会对q标签自动添加双引号。</p>
+
+<p><code>&lt;blockquote&gt;</code>标签，长文本引用。默认浏览器对<code>&lt;blockquote&gt;</code>标签的解析是缩进样式。</p>
+
+<p><code>&lt;br&gt;</code>标签分行显示文本。在html中是忽略回车和空格的。输入空格，必须写入<code>&amp;nbsp;</code></p>
+
+<p><code>&lt;hr&gt;</code>标签，添加水平横线</p>
+
+<p><code>&lt;address&gt;</code>标签，为网页加入地址信息。默认在浏览器上显示的样式为斜体</p>
+
+<p><code>&lt;code&gt;</code>标签，为网页加入一行代码。如果是多行代码，可以使用<code>&lt;pre&gt;</code>标签。<code>&lt;pre&gt;</code>标签不只是为显示计算机的源代码时用的，在需要在网页中预显示格式时都可以使用它</p>
+
+<p>使用ul，添加列表.ul-li在网页中显示的默认样式一般为：每项li前都自带一个圆点.</p>
+
+<p>使用ol，添加有序列表。每项</p><li>前都自带一个序号，序号默认从1开始。<p></p>
+
+<p><code>&lt;div&gt;</code>标签的作用就相当于一个容器。一些独立的逻辑部分划分出来，放在一个<code>&lt;div&gt;</code>标签。逻辑部分是页面上相互关联的一组元素。如网页中独立的栏目版块，就是一个典型的逻辑部分。可以为这一个独立的逻辑部分设置一个名称，用id属性来为<code>&lt;div&gt;</code>提供唯一的名称。</p>
+
+<p>table标签是网页上的表格。整个表格以<code>&lt;table&gt;</code>标记开始。当表格内容非常多时，表格会下载一点显示一点，但如果加上<code>&lt;tbody&gt;</code>标签后，这个表格就要等表格内容全部下载完才会显示。<code>&lt;tr&gt;</code>表格的一行。<code>&lt;td&gt;</code>表格的一个单元格，一行中包含几对<code>&lt;td&gt;</code>，说明一行中就有几列。<code>&lt;th&gt;</code>表格表头。
+table表格在没有添加css样式之前，在浏览器中显示是没有表格线的。表头，也就是th标签中的文本默认为粗体并且居中显示。
+给表格加入边框：</p>
+
+<pre><code>&lt;style type="text/css"&gt;
+table tr td,th{border:1px solid #000;}
+&lt;/style&gt;
+</code></pre>
+
+<p>为表格添加标题和摘要.
+摘要：不会在浏览器中显示出来的。它的作用是增加表格的可读性(语义化)，使搜索引擎更好的读懂表格内容，还可以使屏幕阅读器更好的帮助特殊用户读取表格内容。
+语法：<code>&lt;table summary="表格简介文本"&gt;</code></p>
+
+<p>标题:用以描述表格内容，标题的显示位置：表格上方。
+<code>&lt;caption&gt;标题文本&lt;/caption&gt;</code></p>
+
+<p><code>&lt;a&gt;</code>标签，链接到一个页面
+语法：</p>
+
+<pre><code>&lt;a  href="目标网址" title="鼠标滑过显示的文本"&gt;链接显示的文本&lt;/a&gt;
+</code></pre>
+
+<p>title属性的作用，鼠标滑过链接文字时会显示这个属性的文本内容。这个属性在实际网页开发中作用很大，主要方便搜索引擎了解链接地址的内容（语义化更友好）。
+默认文本加入a标签后，颜色就会变为蓝色，被点击过的文本颜色为紫色。
+在新建浏览器窗口中打开链接：</p>
+
+<pre><code>&lt;a href="目标网址" target="_blank"&gt;click here!&lt;/a&gt;
+</code></pre>
+
+<p>mailto在网页中链接Email地址。
+如果mailto后面同时有多个参数的话，第一个参数必须以“?”开头，后面的参数每一个都以“&amp;”分隔。</p>
+
+<pre><code>&lt;a href="mailto:a@bcd.com"?subject="sub"&amp;body="xxxx"&gt;&lt;/a&gt;
+</code></pre>
+
+<pre><code>&lt;img src="地址" alt="下载失败时的替换文本" title="为图片加入鼠标滑过时的提示文本"&gt;
+</code></pre></li>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "html-css.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+</body>
+</html>

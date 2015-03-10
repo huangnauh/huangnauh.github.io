@@ -45,7 +45,7 @@ hr {color:sienna;}
 	<p style="color:sienna;margin-left:20px">This is a paragraph.</p>
 ```
 
-嵌入式>外部式有一个前提：嵌入式css样式的位置一定在外部式的后面。其实总结来说，就是就近原则（离被设置元素越近优先级别越高）。
+嵌入式`>`外部式有一个前提：嵌入式css样式的位置一定在外部式的后面。其实总结来说，就是就近原则（离被设置元素越近优先级别越高）。
 
 ## 2 选择器
 选择器 声明块（多个声明组成，每个声明是一个属性值对）
@@ -206,9 +206,7 @@ ID属性值                 0,1,0,0
 3. 元素宽度在不设置的情况下，是它本身父容器的100%（和父元素的宽度一致），除非设定一个宽度。
 
 常用的块状元素有：
-```
-<div>、<p>、<h1>...<h6>、<ol>、<ul>、<dl>、<table>、<address>、<blockquote> 、<form>
-```
+div,p,h1...h6,ol,ul,dl,table,address,blockquote,form
 
 通过代码`display:inline`将元素设置为内联元素
 
@@ -216,9 +214,7 @@ ID属性值                 0,1,0,0
 2. 元素的高度、宽度、行高及顶部和底部边距不可设置；
 3. 元素的宽度就是它包含的文字或图片的宽度，不可改变。
 常用的内联元素有:
-```
-<a>、<span>、<br>、<i>、<em>、<strong>、<label>、<q>、<var>、<cite>、<code>
-```
+a,span,br,i,em,strong,label,q,var,cite,code
 
 通过`display:inline-block`将元素设置为内联块状元素
 1.和其他元素都在一行上；
@@ -334,7 +330,7 @@ hr {color:sienna;}
 <pre><code>    &lt;p style="color:sienna;margin-left:20px"&gt;This is a paragraph.&lt;/p&gt;
 </code></pre>
 
-<p>嵌入式&gt;外部式有一个前提：嵌入式css样式的位置一定在外部式的后面。其实总结来说，就是就近原则（离被设置元素越近优先级别越高）。</p>
+<p>嵌入式<code>&gt;</code>外部式有一个前提：嵌入式css样式的位置一定在外部式的后面。其实总结来说，就是就近原则（离被设置元素越近优先级别越高）。</p>
 
 <h2 id="2">2 选择器</h2>
 
@@ -503,10 +499,8 @@ ID属性值                 0,1,0,0</p>
 <li>元素宽度在不设置的情况下，是它本身父容器的100%（和父元素的宽度一致），除非设定一个宽度。</li>
 </ol>
 
-<p>常用的块状元素有：</p>
-
-<pre><code>&lt;div&gt;、&lt;p&gt;、&lt;h1&gt;...&lt;h6&gt;、&lt;ol&gt;、&lt;ul&gt;、&lt;dl&gt;、&lt;table&gt;、&lt;address&gt;、&lt;blockquote&gt; 、&lt;form&gt;
-</code></pre>
+<p>常用的块状元素有：
+div,p,h1...h6,ol,ul,dl,table,address,blockquote,form</p>
 
 <p>通过代码<code>display:inline</code>将元素设置为内联元素</p>
 
@@ -514,11 +508,9 @@ ID属性值                 0,1,0,0</p>
 <li>和其他元素都在一行上；</li>
 <li>元素的高度、宽度、行高及顶部和底部边距不可设置；</li>
 <li>元素的宽度就是它包含的文字或图片的宽度，不可改变。
-常用的内联元素有:</li>
+常用的内联元素有:
+a,span,br,i,em,strong,label,q,var,cite,code</li>
 </ol>
-
-<pre><code>&lt;a&gt;、&lt;span&gt;、&lt;br&gt;、&lt;i&gt;、&lt;em&gt;、&lt;strong&gt;、&lt;label&gt;、&lt;q&gt;、&lt;var&gt;、&lt;cite&gt;、&lt;code&gt;
-</code></pre>
 
 <p>通过<code>display:inline-block</code>将元素设置为内联块状元素
 1.和其他元素都在一行上；

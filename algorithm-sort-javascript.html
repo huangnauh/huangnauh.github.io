@@ -48,7 +48,8 @@ function selectSort(a){
     }
 }
 ```
-插入排序
+
+### 2  插入排序
 ```
 function insertSort(a){
     var n = a.length;
@@ -63,7 +64,7 @@ function insertSort(a){
     }
 }
 ```
-冒泡排序
+### 3 冒泡排序
 ```
 function bubbleSort(a){
     var n = a.length;
@@ -82,7 +83,7 @@ function bubbleSort(a){
     }
 }
 ```
-希尔排序
+### 4 希尔排序
 ```
 function shellSort(a){
     var n = a.length;
@@ -101,7 +102,7 @@ function shellSort(a){
     }
 }
 ```
-归并排序
+### 5  归并排序
 
 为了使数组原地排序，构造splice方法的参数,对数组进行先删后增。
 ```
@@ -172,7 +173,7 @@ function mergeSort(a){
 
 
 
-快速排序
+### 6 快速排序
 选择数组中间的值作为基准
 ```
 function partition(a,first,last){
@@ -300,7 +301,7 @@ function quickSort(a,first,last){
 }
 </code></pre>
 
-<p>插入排序</p>
+<h3 id="2">2  插入排序</h3>
 
 <pre><code>function insertSort(a){
     var n = a.length;
@@ -316,7 +317,7 @@ function quickSort(a,first,last){
 }
 </code></pre>
 
-<p>冒泡排序</p>
+<h3 id="3">3 冒泡排序</h3>
 
 <pre><code>function bubbleSort(a){
     var n = a.length;
@@ -336,7 +337,7 @@ function quickSort(a,first,last){
 }
 </code></pre>
 
-<p>希尔排序</p>
+<h3 id="4">4 希尔排序</h3>
 
 <pre><code>function shellSort(a){
     var n = a.length;
@@ -356,7 +357,7 @@ function quickSort(a,first,last){
 }
 </code></pre>
 
-<p>归并排序</p>
+<h3 id="5">5  归并排序</h3>
 
 <p>为了使数组原地排序，构造splice方法的参数,对数组进行先删后增。</p>
 
@@ -425,8 +426,9 @@ function mergeSort(a){
 }
 </code></pre>
 
-<p>快速排序
-选择数组中间的值作为基准</p>
+<h3 id="6">6 快速排序</h3>
+
+<p>选择数组中间的值作为基准</p>
 
 <pre><code>function partition(a,first,last){
     var p = Math.floor((first+last)/2),

@@ -104,6 +104,44 @@ function shellSort(a){
 ```
 ### 5  归并排序
 
+迭代版本
+```
+Array.prototype.mergeSort = function(){
+    var merge = function(left,right){
+        var merged = [];
+        while(left.length && right.length){
+            merged.push(left[0] <= right[0] ? left.shift():right.shift());
+        }
+        return merged.concat(left.concat(right));
+    }
+    if (this.length < 2) return this;
+    var mid = Math.floor(this.length/2);
+    return merge(this.slice(0,mid).mergeSort(),this.slice(mid).mergeSort())
+}
+
+```
+
+递归版本
+```
+Array.prototype.mergeSort = function(){
+    var merge = function(left,right){
+        var merged = [];
+        while(left.length && right.length){
+            merged.push(left[0] <= right[0] ? left.shift():right.shift());
+        }
+        return merged.concat(left.concat(right));
+    }
+    var myarray = [];
+    this.forEach(function(item){
+        myarray.push([item]);
+    });
+    while(myarray.length > 1){
+       myarray.push(merge(myarray.shift(),myarray.shift()))
+    }
+    return myarray[0];
+}
+```
+
 为了使数组原地排序，构造splice方法的参数,对数组进行先删后增。
 ```
 function merge(left,right){
@@ -358,6 +396,43 @@ function quickSort(a,first,last){
 </code></pre>
 
 <h3 id="5">5  归并排序</h3>
+
+<p>迭代版本</p>
+
+<pre><code>Array.prototype.mergeSort = function(){
+    var merge = function(left,right){
+        var merged = [];
+        while(left.length &amp;&amp; right.length){
+            merged.push(left[0] &lt;= right[0] ? left.shift():right.shift());
+        }
+        return merged.concat(left.concat(right));
+    }
+    if (this.length &lt; 2) return this;
+    var mid = Math.floor(this.length/2);
+    return merge(this.slice(0,mid).mergeSort(),this.slice(mid).mergeSort())
+}
+</code></pre>
+
+<p>递归版本</p>
+
+<pre><code>Array.prototype.mergeSort = function(){
+    var merge = function(left,right){
+        var merged = [];
+        while(left.length &amp;&amp; right.length){
+            merged.push(left[0] &lt;= right[0] ? left.shift():right.shift());
+        }
+        return merged.concat(left.concat(right));
+    }
+    var myarray = [];
+    this.forEach(function(item){
+        myarray.push([item]);
+    });
+    while(myarray.length &gt; 1){
+       myarray.push(merge(myarray.shift(),myarray.shift()))
+    }
+    return myarray[0];
+}
+</code></pre>
 
 <p>为了使数组原地排序，构造splice方法的参数,对数组进行先删后增。</p>
 

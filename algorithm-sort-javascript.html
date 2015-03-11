@@ -1,0 +1,598 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+之前用python和c写过常用排序
+[常用排序的c和python实现](http://huangnauh.github.io/algorithm-sort.html)
+
+这个是学习javascript时，写的javascript版本
+### 1 选择排序
+```
+function selectSort(a){
+    var n = a.length;
+    for(var i=0;i<n;i++){
+        var min = i;
+        for(var j=i+1;j<n;j++){
+            if(a[min] > a[j]){
+                min = j;
+            }
+        }
+        if(min != i){
+            var temp = a[i];
+            a[i] = a[min];
+            a[min] = temp;
+        }
+    }
+}
+```
+插入排序
+```
+function insertSort(a){
+    var n = a.length;
+    for(var i=1;i<n;i++){
+        var temp = a[i];
+        var j = i;
+        while(j>0 && temp<a[j-1]){
+            a[j] = a[j-1];
+            j--;
+        }
+        a[j] = temp;
+    }
+}
+```
+冒泡排序
+```
+function bubbleSort(a){
+    var n = a.length;
+    var flag = n-1;
+    while(flag){
+        var i = flag;
+        flag = 0;
+        for(var j=0;j<i;j++){
+            if(a[j] > a[j+1]){
+                var temp = a[j];
+                a[j] = a[j+1];
+                a[j+1] = temp;
+                flag = j;
+            }
+        }
+    }
+}
+```
+希尔排序
+```
+function shellSort(a){
+    var n = a.length;
+    var gap = Math.floor(n/2);
+    while(gap){
+        for(var i=gap;i<n;i+=gap){
+            var j=i;
+            var temp = a[i];
+            while(j>0 && temp<a[j-gap]){
+                a[j] = a[j-gap];
+                j -= gap;
+            }
+            a[j]=temp;
+        }
+        gap = Math.floor(gap/2);
+    }
+}
+```
+归并排序
+
+为了使数组原地排序，构造splice方法的参数,对数组进行先删后增。
+```
+function merge(left,right){
+    var result = [],
+        l = left.length,
+        r = right.length,
+        il = 0,
+        ir = 0;
+    while(il < l && ir < r){
+        if(left[il] <= right[ir]){
+            result.push(left[il++]);
+        }else{
+            result.push(right[ir++]);
+        }
+    }
+    return result.concat(left.slice(il)).concat(right.slice(ir));
+}
+
+function mergeSort(a){
+    var n = a.length;
+    if(n < 2){
+        return a;
+    }
+    var mid = Math.floor(n/2),
+        left = a.slice(0,mid),
+        right = a.slice(mid);
+    var params = merge(mergeSort(left),mergeSort(right));
+    params.unshift(0,n);
+    a.splice.apply(a,params)
+    return a;
+}
+```
+
+也可以使用闭包来实现就地排序
+```
+function mergeSort(a){
+    var n = a.length;
+    if(n <= 1){
+        return;
+    }
+    var mid = Math.floor(n/2);
+    function merge(left,right){
+        var l = left.length;
+        var r = right.length;
+        var i=0,j=0,k=0;
+        while(i<l && j<r){
+            if(left[i] <= right[j]) {
+                a[k++] = left[i++];
+            }else{
+                a[k++] = right[j++];
+            }
+        }
+        while(i<l){
+            a[k++] = left[i++];
+        }
+        while(j<r){
+            a[k++] = right[j++];
+        }
+    }
+    var left = a.slice(0,mid);
+    var right = a.slice(mid,n);
+    mergeSort(left);
+    mergeSort(right);
+    merge(left,right);
+}
+```
+
+
+
+快速排序
+选择数组中间的值作为基准
+```
+function partition(a,first,last){
+    var p = Math.floor((first+last)/2),
+        left = first,
+        right = last,
+        temp;
+    while(left <= right){
+        while(left <= right && a[left] < a[p]){
+            left++;
+        }
+        while(left <= right && a[right] > a[p]){
+            right--;
+        }
+        if(left > right){
+            break;
+        }
+        temp = a[left];
+        a[left] = a[right];
+        a[right] = temp;
+        left++;
+        right--;
+    }
+    return left;
+}
+
+function quickSortHelp(a,first,last){
+    if(first >= last){
+        return;
+    }
+    var p = partition(a,first,last);
+    quickSortHelp(a,first,p-1);
+    quickSortHelp(a,p,last);
+}
+
+function quickSort(a){
+    quickSortHelp(a,0,a.length-1);    
+}
+```
+选择数组开始的值作为基准
+```
+function partition(a,first,last){
+    var p = first;
+    left = first+1;
+    right = last;
+    var temp;
+    while(left <= right){
+        while(left <= right && a[left] <= a[p]){
+            left++;
+        }
+        while(left <= right && a[right] > a[p]){
+            right--;
+        }
+        if(left > right){
+            break;
+        }
+        temp = a[left];
+        a[left] = a[right];
+        a[right] = temp;
+        left++;
+        right--;
+   }
+   temp = a[right];
+   a[right] = a[first];
+   a[first] = temp;
+   return right;
+}
+
+function quickSortHelp(a,first,last){
+    if(first >= last){
+        return;
+    }
+    var p = partition(a,first,last);
+    quickSortHelp(a,first,p-1);
+    quickSortHelp(a,p+1,last);
+}
+
+function quickSort(a){
+    quickSortHelp(a,0,a.length-1);    
+}
+```
+
+因为Javascript语言允许省略参数
+quickSortHelp和quickSort可以合并为一个函数，以上面的函数为例
+```
+function quickSort(a,first,last){
+    if (a.length < 2) return a;
+    first = (typeof first === "number" ? first : 0);
+    last = (typeof last === "number" ? last : a.length-1);
+    var p = partition(a,first,last);
+    if (first < p-1){
+        quickSort(a,first,p-1);
+    }
+    if(p+1 < last){
+        quickSort(a,p+1,last);
+    }
+}
+```
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>之前用python和c写过常用排序
+<a href="http://huangnauh.github.io/algorithm-sort.html">常用排序的c和python实现</a></p>
+
+<p>这个是学习javascript时，写的javascript版本</p>
+
+<h3 id="1">1 选择排序</h3>
+
+<pre><code>function selectSort(a){
+    var n = a.length;
+    for(var i=0;i&lt;n;i++){
+        var min = i;
+        for(var j=i+1;j&lt;n;j++){
+            if(a[min] &gt; a[j]){
+                min = j;
+            }
+        }
+        if(min != i){
+            var temp = a[i];
+            a[i] = a[min];
+            a[min] = temp;
+        }
+    }
+}
+</code></pre>
+
+<p>插入排序</p>
+
+<pre><code>function insertSort(a){
+    var n = a.length;
+    for(var i=1;i&lt;n;i++){
+        var temp = a[i];
+        var j = i;
+        while(j&gt;0 &amp;&amp; temp&lt;a[j-1]){
+            a[j] = a[j-1];
+            j--;
+        }
+        a[j] = temp;
+    }
+}
+</code></pre>
+
+<p>冒泡排序</p>
+
+<pre><code>function bubbleSort(a){
+    var n = a.length;
+    var flag = n-1;
+    while(flag){
+        var i = flag;
+        flag = 0;
+        for(var j=0;j&lt;i;j++){
+            if(a[j] &gt; a[j+1]){
+                var temp = a[j];
+                a[j] = a[j+1];
+                a[j+1] = temp;
+                flag = j;
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>希尔排序</p>
+
+<pre><code>function shellSort(a){
+    var n = a.length;
+    var gap = Math.floor(n/2);
+    while(gap){
+        for(var i=gap;i&lt;n;i+=gap){
+            var j=i;
+            var temp = a[i];
+            while(j&gt;0 &amp;&amp; temp&lt;a[j-gap]){
+                a[j] = a[j-gap];
+                j -= gap;
+            }
+            a[j]=temp;
+        }
+        gap = Math.floor(gap/2);
+    }
+}
+</code></pre>
+
+<p>归并排序</p>
+
+<p>为了使数组原地排序，构造splice方法的参数,对数组进行先删后增。</p>
+
+<pre><code>function merge(left,right){
+    var result = [],
+        l = left.length,
+        r = right.length,
+        il = 0,
+        ir = 0;
+    while(il &lt; l &amp;&amp; ir &lt; r){
+        if(left[il] &lt;= right[ir]){
+            result.push(left[il++]);
+        }else{
+            result.push(right[ir++]);
+        }
+    }
+    return result.concat(left.slice(il)).concat(right.slice(ir));
+}
+
+function mergeSort(a){
+    var n = a.length;
+    if(n &lt; 2){
+        return a;
+    }
+    var mid = Math.floor(n/2),
+        left = a.slice(0,mid),
+        right = a.slice(mid);
+    var params = merge(mergeSort(left),mergeSort(right));
+    params.unshift(0,n);
+    a.splice.apply(a,params)
+    return a;
+}
+</code></pre>
+
+<p>也可以使用闭包来实现就地排序</p>
+
+<pre><code>function mergeSort(a){
+    var n = a.length;
+    if(n &lt;= 1){
+        return;
+    }
+    var mid = Math.floor(n/2);
+    function merge(left,right){
+        var l = left.length;
+        var r = right.length;
+        var i=0,j=0,k=0;
+        while(i&lt;l &amp;&amp; j&lt;r){
+            if(left[i] &lt;= right[j]) {
+                a[k++] = left[i++];
+            }else{
+                a[k++] = right[j++];
+            }
+        }
+        while(i&lt;l){
+            a[k++] = left[i++];
+        }
+        while(j&lt;r){
+            a[k++] = right[j++];
+        }
+    }
+    var left = a.slice(0,mid);
+    var right = a.slice(mid,n);
+    mergeSort(left);
+    mergeSort(right);
+    merge(left,right);
+}
+</code></pre>
+
+<p>快速排序
+选择数组中间的值作为基准</p>
+
+<pre><code>function partition(a,first,last){
+    var p = Math.floor((first+last)/2),
+        left = first,
+        right = last,
+        temp;
+    while(left &lt;= right){
+        while(left &lt;= right &amp;&amp; a[left] &lt; a[p]){
+            left++;
+        }
+        while(left &lt;= right &amp;&amp; a[right] &gt; a[p]){
+            right--;
+        }
+        if(left &gt; right){
+            break;
+        }
+        temp = a[left];
+        a[left] = a[right];
+        a[right] = temp;
+        left++;
+        right--;
+    }
+    return left;
+}
+
+function quickSortHelp(a,first,last){
+    if(first &gt;= last){
+        return;
+    }
+    var p = partition(a,first,last);
+    quickSortHelp(a,first,p-1);
+    quickSortHelp(a,p,last);
+}
+
+function quickSort(a){
+    quickSortHelp(a,0,a.length-1);    
+}
+</code></pre>
+
+<p>选择数组开始的值作为基准</p>
+
+<pre><code>function partition(a,first,last){
+    var p = first;
+    left = first+1;
+    right = last;
+    var temp;
+    while(left &lt;= right){
+        while(left &lt;= right &amp;&amp; a[left] &lt;= a[p]){
+            left++;
+        }
+        while(left &lt;= right &amp;&amp; a[right] &gt; a[p]){
+            right--;
+        }
+        if(left &gt; right){
+            break;
+        }
+        temp = a[left];
+        a[left] = a[right];
+        a[right] = temp;
+        left++;
+        right--;
+   }
+   temp = a[right];
+   a[right] = a[first];
+   a[first] = temp;
+   return right;
+}
+
+function quickSortHelp(a,first,last){
+    if(first &gt;= last){
+        return;
+    }
+    var p = partition(a,first,last);
+    quickSortHelp(a,first,p-1);
+    quickSortHelp(a,p+1,last);
+}
+
+function quickSort(a){
+    quickSortHelp(a,0,a.length-1);    
+}
+</code></pre>
+
+<p>因为Javascript语言允许省略参数
+quickSortHelp和quickSort可以合并为一个函数，以上面的函数为例</p>
+
+<pre><code>function quickSort(a,first,last){
+    if (a.length &lt; 2) return a;
+    first = (typeof first === "number" ? first : 0);
+    last = (typeof last === "number" ? last : a.length-1);
+    var p = partition(a,first,last);
+    if (first &lt; p-1){
+        quickSort(a,first,p-1);
+    }
+    if(p+1 &lt; last){
+        quickSort(a,p+1,last);
+    }
+}
+</code></pre>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "algorithm-sort-javascript.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+</body>
+</html>

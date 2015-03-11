@@ -236,6 +236,39 @@ void merge_sort(int a[],int n){
 }
 ```
 
+python递归版本
+```
+def merge(left,right):
+    merged = []
+    while left and right:
+        merged.append(left.pop(0) if left[0] <= right[0] else right.pop(0))
+    while left:
+        merged.append(left.pop(0))
+    while right:
+        merged.append(right.pop(0))
+    return merged
+```
+
+```
+def merge_sort(a):
+    n = len(a)
+    if n<= 1:
+        return a
+    mid = n//2
+    return merge(merge_sort(a[:mid]),merge_sort(a[mid:]))
+```
+
+python迭代版本
+```
+def iter_mergesort(a):
+    lst = [[i] for i in a]
+    while len(lst)>1:
+        lst.append(merge(lst.pop(0),lst.pop(0)))
+    return lst.pop()
+```
+    
+python利用闭包实现就地排序
+
 ```
 def merge_sort(a):
     n = len(a)
@@ -392,7 +425,6 @@ void heap_sort(int a[],int n){
 python标准库有 [heapq模块](https://hg.python.org/cpython/file/2.7/Lib/heapq.py)
 
 Python的timsort [Understanding timsort](http://www.drmaciver.com/2010/01/understanding-timsort-1adaptive-mergesort/)
-
 
 <!-- markdown end -->
 </div>
@@ -598,6 +630,38 @@ void merge_sort(int a[],int n){
     free(storage);
 }
 </code></pre>
+
+<p>python递归版本</p>
+
+<pre><code>def merge(left,right):
+    merged = []
+    while left and right:
+        merged.append(left.pop(0) if left[0] &lt;= right[0] else right.pop(0))
+    while left:
+        merged.append(left.pop(0))
+    while right:
+        merged.append(right.pop(0))
+    return merged
+</code></pre>
+
+<pre><code>def merge_sort(a):
+    n = len(a)
+    if n&lt;= 1:
+        return a
+    mid = n//2
+    return merge(merge_sort(a[:mid]),merge_sort(a[mid:]))
+</code></pre>
+
+<p>python迭代版本</p>
+
+<pre><code>def iter_mergesort(a):
+    lst = [[i] for i in a]
+    while len(lst)&gt;1:
+        lst.append(merge(lst.pop(0),lst.pop(0)))
+    return lst.pop()
+</code></pre>
+
+<p>python利用闭包实现就地排序</p>
 
 <pre><code>def merge_sort(a):
     n = len(a)

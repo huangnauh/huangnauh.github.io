@@ -1,0 +1,237 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+1、QuerySet则调用django.db.models.sql.Query类来拼凑sql语句
+
+2、Manager定义了所有的model的queryset方法。很经典的掩饰, 为 Manager 特殊设定 Descriptor, 从而, 只能让类访问, 而不能让类的实例来访问. 
+
+4、 `bulk_create` 批量创建没有调用model的save方法，于是没有`pre_save`和`post_save`信号。
+
+5、 `select_related` 用同一条SQL中通过 join table 一起取出数据。但 `select_related` 是不支持 GenericForeignKey。除了 GenericForeignKey，`prefetch_related` 还可以作用在 ManyToManyField 和 `many-to-one` 的 ForeignKey 这些 `select_related` 不支持的 field.
+
+6、GenericForeignKey可以用在订阅机制上，订阅文章，分类等不确定的表。
+
+7、queryset的自带cache在queryset很大的情况下是一个问题，我们可以用iterator()函数每次取出一行。
+
+8、pgbouncer事务模式。PostgreSQL 连接是进程级的，而不是像MySQL那样是线程级的。当一个连接占用过多资源并且不能被中止时可以直接杀进程，而 MySQL 则没有办法了
+
+9、pip可以从本地路径安装python package
+
+10、中间件middleware
+
+11、get 和 `__repr__`会默认加上 limit 21
+因为get 需要判断是否获取了多个数据，如果是，则raise异常
+而` __repr__` 是为了防止打印出所有数据而做的限制
+
+12、`Last-Modified` 有两个问题：1）只能精确到秒，1 秒内的多次变化反映不出来；2）时间采用绝对值，如果服务端 / 客户端时间不对都可能导致缓存失效。HTTP/1.1 并没有规定ETag 的生成规则，而一般实现者都是对资源内容做摘要，能解决前面两个问题。
+
+18、`Cache-Control`功能更强大，对缓存的控制能力更强，` max-age` 是相对时间，不受服务端/客户端时间不对的影响。
+
+13、django默认权限是基于model的，而不是object，可以适应三方库来实现。
+
+14、修改字段的类型 ```alter table points_targetstat alter abc type smallint using abc::int;```
+
+21、外键。
+```
+alter table points_targetstat drop constraint "points_targetstat_target_user_id_fkey"
+
+alter table fluent_comments_fluentcomment add CONSTRAINT  "fluent_comments_fluentcomment_tree_id_fkey" FOREIGN KEY (tree_id) REFERENCES fluent_comments_mptttree(id) DEFERRABLE INITIALLY DEFERRED;
+```
+
+15、`request.GET = request.GET.copy()`  默认的request.GET是QueryDict,不可修改
+
+16、聚合函数
+```
+Book.objects.all().aggregate(Avg('price')）
+Book.objects.annotate(counts=Count('authors')).filter(counts__gt=1)
+```
+17、F函数
+```
+BooK.objects.filter(id=book.id).update(price=F('price') + 1)
+```
+
+19、服务器内部通信，常常使用unixsocket
+
+20、xadmin的自定义Admin类都是继承自object，xadmin的ModelAdmin设计和Django的ClassBase View类似。
+
+22、查询不含索引的postgreSQL表的大小
+```
+select pg_size_pretty(pg_relation_size('core_post'));
+```
+
+找到postgreSQL数据库中占空间最大的表
+```
+SELECT relname, relpages FROM pg_class ORDER BY relpages DESC;
+relname - 关系名/表名
+relpages - 关系页数（默认情况下一个页大小是8kb）
+pg_class - 系统表, 维护着所有relations的详细信息
+```
+
+23、Mysql从左到右的使用索引中的字段，一个查询可以只使用索引中的一部份，但只能是最左侧部分。例如索引是key index (a,b,c). 可以支持a | a,b| a,b,c 3种组合进行查找，但不支持 b,c进行查找 .当最左侧字段是常量引用时，索引就十分有效。
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>1、QuerySet则调用django.db.models.sql.Query类来拼凑sql语句</p>
+
+<p>2、Manager定义了所有的model的queryset方法。很经典的掩饰, 为 Manager 特殊设定 Descriptor, 从而, 只能让类访问, 而不能让类的实例来访问. </p>
+
+<p>4、 <code>bulk_create</code> 批量创建没有调用model的save方法，于是没有<code>pre_save</code>和<code>post_save</code>信号。</p>
+
+<p>5、 <code>select_related</code> 用同一条SQL中通过 join table 一起取出数据。但 <code>select_related</code> 是不支持 GenericForeignKey。除了 GenericForeignKey，<code>prefetch_related</code> 还可以作用在 ManyToManyField 和 <code>many-to-one</code> 的 ForeignKey 这些 <code>select_related</code> 不支持的 field.</p>
+
+<p>6、GenericForeignKey可以用在订阅机制上，订阅文章，分类等不确定的表。</p>
+
+<p>7、queryset的自带cache在queryset很大的情况下是一个问题，我们可以用iterator()函数每次取出一行。</p>
+
+<p>8、pgbouncer事务模式。PostgreSQL 连接是进程级的，而不是像MySQL那样是线程级的。当一个连接占用过多资源并且不能被中止时可以直接杀进程，而 MySQL 则没有办法了</p>
+
+<p>9、pip可以从本地路径安装python package</p>
+
+<p>10、中间件middleware</p>
+
+<p>11、get 和 <code>__repr__</code>会默认加上 limit 21
+因为get 需要判断是否获取了多个数据，如果是，则raise异常
+而<code>__repr__</code> 是为了防止打印出所有数据而做的限制</p>
+
+<p>12、<code>Last-Modified</code> 有两个问题：1）只能精确到秒，1 秒内的多次变化反映不出来；2）时间采用绝对值，如果服务端 / 客户端时间不对都可能导致缓存失效。HTTP/1.1 并没有规定ETag 的生成规则，而一般实现者都是对资源内容做摘要，能解决前面两个问题。</p>
+
+<p>18、<code>Cache-Control</code>功能更强大，对缓存的控制能力更强，<code>max-age</code> 是相对时间，不受服务端/客户端时间不对的影响。</p>
+
+<p>13、django默认权限是基于model的，而不是object，可以适应三方库来实现。</p>
+
+<p>14、修改字段的类型 <code>alter table points_targetstat alter abc type smallint using abc::int;</code></p>
+
+<p>21、外键。</p>
+
+<pre><code>alter table points_targetstat drop constraint "points_targetstat_target_user_id_fkey"
+
+alter table fluent_comments_fluentcomment add CONSTRAINT  "fluent_comments_fluentcomment_tree_id_fkey" FOREIGN KEY (tree_id) REFERENCES fluent_comments_mptttree(id) DEFERRABLE INITIALLY DEFERRED;
+</code></pre>
+
+<p>15、<code>request.GET = request.GET.copy()</code>  默认的request.GET是QueryDict,不可修改</p>
+
+<p>16、聚合函数</p>
+
+<pre><code>Book.objects.all().aggregate(Avg('price')）
+Book.objects.annotate(counts=Count('authors')).filter(counts__gt=1)
+</code></pre>
+
+<p>17、F函数</p>
+
+<pre><code>BooK.objects.filter(id=book.id).update(price=F('price') + 1)
+</code></pre>
+
+<p>19、服务器内部通信，常常使用unixsocket</p>
+
+<p>20、xadmin的自定义Admin类都是继承自object，xadmin的ModelAdmin设计和Django的ClassBase View类似。</p>
+
+<p>22、查询不含索引的postgreSQL表的大小</p>
+
+<pre><code>select pg_size_pretty(pg_relation_size('core_post'));
+</code></pre>
+
+<p>找到postgreSQL数据库中占空间最大的表</p>
+
+<pre><code>SELECT relname, relpages FROM pg_class ORDER BY relpages DESC;
+relname - 关系名/表名
+relpages - 关系页数（默认情况下一个页大小是8kb）
+pg_class - 系统表, 维护着所有relations的详细信息
+</code></pre>
+
+<p>23、Mysql从左到右的使用索引中的字段，一个查询可以只使用索引中的一部份，但只能是最左侧部分。例如索引是key index (a,b,c). 可以支持a | a,b| a,b,c 3种组合进行查找，但不支持 b,c进行查找 .当最左侧字段是常量引用时，索引就十分有效。</p>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "working-note.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+</body>
+</html>

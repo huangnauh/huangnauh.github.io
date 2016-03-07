@@ -1,0 +1,377 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+24、证书过期:
+
+现象 nginx日志报错：
+```
+2015/07/09 11:36:17 [info] 5233#0: *597244936 client closed connection while waiting for request, client: 61.171.255.193, server: 0.0.0.0:443
+```
+查看证书过期时间： 
+```
+openssl x509 -enddate -noout -in /etc/ssl/nginx/comp.crt
+```
+生成csr：
+```
+openssl req -new -newkey rsa:2048 -nodes -keyout your domain name.key -out your domain name.csr
+```
+私钥解密：
+```
+openssl rsa -in ssl.key -out aaa.key
+```
+生成pkcs12证书:
+```
+openssl pkcs12 -export -out client.pfx -in ssl.crt -inkey aaa.key
+```
+
+
+26、 redis分布式
+
+"说到一致性，这也是Codis支持的MGET/MSET无法保证原本单点时的原子语义的原因。 因为MSET所参与的key可能分不在不同的机器上，如果需要保证原来的语义，也就是要么一起成功，要么一起失败，这样就是一个分布式事务的问题，对于Redis来说，并没有WAL或者回滚这么一说，所以即使是一个最简单的二阶段提交的策略都很难实现，而且即使实现了，性能也没有保证。所以在Codis中使用MSET/MGET其实和你本地开个多线程SET/GET效果一样，只不过是由服务端打包返回罢了，我们加上这个命令的支持只是为了更好的支持以前用Twemproxy的业务。
+
+在实际场景中，很多朋友使用了lua脚本以扩展Redis的功能，其实Codis这边是支持的，但记住，Codis在涉及这种场景的时候，仅仅是转发而已，它并不保证你的脚本操作的数据是否在正确的节点上。比如，你的脚本里涉及操作多个key，Codis能做的就是将这个脚本分配到参数列表中的第一个key的机器上执行。所以这种场景下，你需要自己保证你的脚本所用到的key分布在同一个机器上，这里可以采用hashtag的方式。
+
+比如你有一个脚本是操作某个用户的多个信息，如uid1age，uid1sex，uid1name形如此类的key，如果你不用hashtag的话，这些key可能会分散在不同的机器上，如果使用了hashtag(用花括号扩住计算hash的区域)：{uid1}age，{uid1}sex，{uid1}name，这样就保证这些key分布在同一个机器上。这个是twemproxy引入的一个语法，我们这边也支持了。
+
+Redis的单点问题，单点Redis容量大小总受限于内存。将Redis变成一个可以水平扩展的分布式缓存服务，在Codis之前，业界只有Twemproxy，但是Twemproxy本身是一个静态的分布式Redis方案，进行扩容/缩容时候对运维要求非常高，而且很难做到平滑的扩缩容。Codis的目标其实就是尽量兼容Twemproxy的基础上，加上数据迁移的功能以实现扩容和缩容，最终替换Twemproxy。
+
+Codis采用一层无状态的proxy层，将分布式逻辑写在proxy上，底层的存储引擎还是Redis本身，数据的分布状态存储于zookeeper(etcd)中，底层的数据存储变成了可插拔的部件。"
+
+25、 varnish配置
+
+请求 URL 热点排名, 根据热点优化缓存策略
+
+`varnishtop -i reqURL`
+
+实时请求日志
+
+`varnishlog`
+
+可以通过 grep 进行过滤查看你需要的信息
+
+`varnishlog -c | grep 'google'`
+
+
+```
+vcl 4.0;
+#用于检测请求设备
+include "devicedetect.vcl"; 
+#后端服务器，提供 varnish 缓存的内容
+backend default {
+    .host = "127.0.0.1";
+    .port = "8008";
+}
+
+#HTTP purges 和 HTTP GET 请求相似
+acl purge {
+
+        "localhost";
+
+        "127.0.0.1";
+
+}
+#vcl_recv是在请求开始时调用的。请求被接收并解析。在vcl_recv中，可以修改请求。通常你可以修改cookie，或添加/移除请求头信息。
+sub vcl_recv {
+    call devicedetect;                                      
+    if (req.method != "GET" && req.method != "HEAD") {
+        return (pass);
+    }
+    unset req.http.Authorization;
+    if (req.url ~ "^/recommend/" || req.url == "/" || req.url ~ "^/m/" || req.url ~ 
+           # Remove the cookie header to enable caching
+           unset req.http.cookie;
+    }
+    # allow PURGE from localhost and 192.168.55...
+
+    if (req.method == "PURGE") {
+                if (!client.ip ~ purge) {
+                        return(synth(405,"Not allowed."));
+                }
+                return (purge);
+    }
+
+    if (req.url == "/") {                                                           
+     if (req.http.X-UA-Device ~ "^mobile" || req.http.X-UA-device ~ "^tablet") {
+            set req.url = "/m/";
+            return(synth(750, "Moved Temporarily"));
+        }
+    }
+}
+sub vcl_synth {
+    if (resp.status == 750) {
+        set resp.http.Location = "http://m.mgpyh.com" + req.url;
+        set resp.status = 302;
+        return(deliver);
+    }
+}
+
+
+
+sub vcl_backend_response {
+    set beresp.ttl = 100s;
+    if (bereq.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|pdf|doc)(\?[a-z
+        # beresp == Back-end response from the web server.
+        unset beresp.http.set-cookie;
+    }
+    if (bereq.url ~ "^/recommend/" || bereq.url == "/" || bereq.url ~ "^/m/" || bere
+        unset beresp.http.set-cookie;
+        set beresp.http.cache-control = "max-age=100";
+        unset beresp.http.Vary;
+    }
+    if (bereq.url == "/") {
+        set beresp.ttl = 60s;
+    }                                                                               
+    if (bereq.url ~ "^/recommend/") {
+        set beresp.ttl = 20s;
+    }
+}
+
+sub vcl_deliver {
+    unset resp.http.X-Powered-By;
+    unset resp.http.Server;
+    unset resp.http.X-Drupal-Cache;
+    unset resp.http.X-Varnish;
+    unset resp.http.Via;
+    unset resp.http.Link;
+    unset resp.http.X-Generator;
+    return (deliver);
+}
+
+```
+
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>24、证书过期:</p>
+
+<p>现象 nginx日志报错：</p>
+
+<pre><code>2015/07/09 11:36:17 [info] 5233#0: *597244936 client closed connection while waiting for request, client: 61.171.255.193, server: 0.0.0.0:443
+</code></pre>
+
+<p>查看证书过期时间： </p>
+
+<pre><code>openssl x509 -enddate -noout -in /etc/ssl/nginx/comp.crt
+</code></pre>
+
+<p>生成csr：</p>
+
+<pre><code>openssl req -new -newkey rsa:2048 -nodes -keyout your domain name.key -out your domain name.csr
+</code></pre>
+
+<p>私钥解密：</p>
+
+<pre><code>openssl rsa -in ssl.key -out aaa.key
+</code></pre>
+
+<p>生成pkcs12证书:</p>
+
+<pre><code>openssl pkcs12 -export -out client.pfx -in ssl.crt -inkey aaa.key
+</code></pre>
+
+<p>26、 redis分布式</p>
+
+<p>"说到一致性，这也是Codis支持的MGET/MSET无法保证原本单点时的原子语义的原因。 因为MSET所参与的key可能分不在不同的机器上，如果需要保证原来的语义，也就是要么一起成功，要么一起失败，这样就是一个分布式事务的问题，对于Redis来说，并没有WAL或者回滚这么一说，所以即使是一个最简单的二阶段提交的策略都很难实现，而且即使实现了，性能也没有保证。所以在Codis中使用MSET/MGET其实和你本地开个多线程SET/GET效果一样，只不过是由服务端打包返回罢了，我们加上这个命令的支持只是为了更好的支持以前用Twemproxy的业务。</p>
+
+<p>在实际场景中，很多朋友使用了lua脚本以扩展Redis的功能，其实Codis这边是支持的，但记住，Codis在涉及这种场景的时候，仅仅是转发而已，它并不保证你的脚本操作的数据是否在正确的节点上。比如，你的脚本里涉及操作多个key，Codis能做的就是将这个脚本分配到参数列表中的第一个key的机器上执行。所以这种场景下，你需要自己保证你的脚本所用到的key分布在同一个机器上，这里可以采用hashtag的方式。</p>
+
+<p>比如你有一个脚本是操作某个用户的多个信息，如uid1age，uid1sex，uid1name形如此类的key，如果你不用hashtag的话，这些key可能会分散在不同的机器上，如果使用了hashtag(用花括号扩住计算hash的区域)：{uid1}age，{uid1}sex，{uid1}name，这样就保证这些key分布在同一个机器上。这个是twemproxy引入的一个语法，我们这边也支持了。</p>
+
+<p>Redis的单点问题，单点Redis容量大小总受限于内存。将Redis变成一个可以水平扩展的分布式缓存服务，在Codis之前，业界只有Twemproxy，但是Twemproxy本身是一个静态的分布式Redis方案，进行扩容/缩容时候对运维要求非常高，而且很难做到平滑的扩缩容。Codis的目标其实就是尽量兼容Twemproxy的基础上，加上数据迁移的功能以实现扩容和缩容，最终替换Twemproxy。</p>
+
+<p>Codis采用一层无状态的proxy层，将分布式逻辑写在proxy上，底层的存储引擎还是Redis本身，数据的分布状态存储于zookeeper(etcd)中，底层的数据存储变成了可插拔的部件。"</p>
+
+<p>25、 varnish配置</p>
+
+<p>请求 URL 热点排名, 根据热点优化缓存策略</p>
+
+<p><code>varnishtop -i reqURL</code></p>
+
+<p>实时请求日志</p>
+
+<p><code>varnishlog</code></p>
+
+<p>可以通过 grep 进行过滤查看你需要的信息</p>
+
+<p><code>varnishlog -c | grep 'google'</code></p>
+
+<pre><code>vcl 4.0;
+#用于检测请求设备
+include "devicedetect.vcl"; 
+#后端服务器，提供 varnish 缓存的内容
+backend default {
+    .host = "127.0.0.1";
+    .port = "8008";
+}
+
+#HTTP purges 和 HTTP GET 请求相似
+acl purge {
+
+        "localhost";
+
+        "127.0.0.1";
+
+}
+#vcl_recv是在请求开始时调用的。请求被接收并解析。在vcl_recv中，可以修改请求。通常你可以修改cookie，或添加/移除请求头信息。
+sub vcl_recv {
+    call devicedetect;                                      
+    if (req.method != "GET" &amp;&amp; req.method != "HEAD") {
+        return (pass);
+    }
+    unset req.http.Authorization;
+    if (req.url ~ "^/recommend/" || req.url == "/" || req.url ~ "^/m/" || req.url ~ 
+           # Remove the cookie header to enable caching
+           unset req.http.cookie;
+    }
+    # allow PURGE from localhost and 192.168.55...
+
+    if (req.method == "PURGE") {
+                if (!client.ip ~ purge) {
+                        return(synth(405,"Not allowed."));
+                }
+                return (purge);
+    }
+
+    if (req.url == "/") {                                                           
+     if (req.http.X-UA-Device ~ "^mobile" || req.http.X-UA-device ~ "^tablet") {
+            set req.url = "/m/";
+            return(synth(750, "Moved Temporarily"));
+        }
+    }
+}
+sub vcl_synth {
+    if (resp.status == 750) {
+        set resp.http.Location = "http://m.mgpyh.com" + req.url;
+        set resp.status = 302;
+        return(deliver);
+    }
+}
+
+
+
+sub vcl_backend_response {
+    set beresp.ttl = 100s;
+    if (bereq.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|pdf|doc)(\?[a-z
+        # beresp == Back-end response from the web server.
+        unset beresp.http.set-cookie;
+    }
+    if (bereq.url ~ "^/recommend/" || bereq.url == "/" || bereq.url ~ "^/m/" || bere
+        unset beresp.http.set-cookie;
+        set beresp.http.cache-control = "max-age=100";
+        unset beresp.http.Vary;
+    }
+    if (bereq.url == "/") {
+        set beresp.ttl = 60s;
+    }                                                                               
+    if (bereq.url ~ "^/recommend/") {
+        set beresp.ttl = 20s;
+    }
+}
+
+sub vcl_deliver {
+    unset resp.http.X-Powered-By;
+    unset resp.http.Server;
+    unset resp.http.X-Drupal-Cache;
+    unset resp.http.X-Varnish;
+    unset resp.http.Via;
+    unset resp.http.Link;
+    unset resp.http.X-Generator;
+    return (deliver);
+}
+</code></pre>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "working-note2.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+</body>
+</html>

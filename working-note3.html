@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+27、celery
+
+celery调试
+```
+from celery.contrib import rdb
+rdb.set_trace()
+```
+
+django与celery
+```
+python manage.py celery multi start 6 -Q:1-3 push -Q default --loglevel=debug --logfile="logs/celery/%N.log" --pidfile="logs/celery/%N.pid"
+```
+
+28、 rq 简单的消息队列
+
+broker 只能是 redis
+
+Job
+
+保存了任务的 id 、所属队列、函数名称、函数的参数、执行结果、执行统计信息等等
+Job 实例的所有信息都保存在一个 Redis 哈希表中，键名格式为 rq:job:<uid> ， uid 一般使用 uuid.uuid4 函数来生成，也可以显式地指定
+
+Queue
+
+每个 Queue 实例都使用 key 属性的值作为列表的键，键名格式为 rq:queue:<name> ， name 属性可以显式地指定，也可以使用默认值 'default' 。
+Queue 以先进先出（FIFO）的方式处理任务： 它使用 rpush 命令将任务 id 放进 Redis 列表； 而 lpop 和 blpop 命令则负责将任务 id 从列表中取出。
+
+Worker
+
+Worker 每次从队列中弹出一个 Job 实例，并派生出一个子进程来执行任务，父进程会一直等待到任务结束，或者任务执行超时。
+
+29、rabbitMQ
+
+在AMQP模型中，消息的producer将Message发送给Exchange，Exchange 负责交换和路由，将消息正确地转发给相应的Queue。消息的 Consumer 从 Queue 中读取消息。这个过程是异步的，Producer 和 Consumer 没有直接联系甚至可以不知道彼此的存在。Exchange 如何进行路由的呢？这便依靠 Routing Key，每个消息都有一个 routing Key，而每个 Queue 都可以通过一个 Binding 将自己所感兴趣的 Routing Key 告诉 Exchange，这样 Exchange 便可以将消息正确地转发给相应的Queue
+
+对于exchange的route这个动作，有下面三类：
+
+1. fan-out：不看routing key，直接把消息放到所有注册到exchange上的queue上
+
+2. direct：只把消息放到和routing key有相匹配key的queue上
+
+3. topic：这里的routing key和queue的key的匹配不是完全的匹配，而是一个模糊匹配。所以一个routing key可能可以匹配到多个queue
+
+为了防止消息丢失，RabbitMQ提供了消息响应（acknowledgments）。消费者会通过一个ack（响应），告诉RabbitMQ已经收到并处理了某条消息，然后RabbitMQ就会释放并删除这条消息。
+
+如果你没有特意告诉RabbitMQ，那么在它退出或者崩溃的时候，将会丢失所有队列和消息。为了确保信息不会丢失，有两个事情是需要注意的：我们必须把“队列”和“消息”设为持久化。
+
+RabbitMQ没有timeout这个概念，你consumer只要不死，我就不会把message给别人处理（所以如果consumer hang住了，可能要杀了这个进程才能让其它consumer处理这个消息）。acknowledgments可以保证message都被consumer处理。
+
+一个queue上的一个message只能被一个consumer处理
+发布/订阅：n个consumer要都处理某个message，那么需要有n个queue，并且把exchange配制成fan-out。
+一个queue可以绑定多个routing key。
+
+30、redis
+
+1、事务原子性：
+
+单个 Redis 命令的执行是原子性的,但 Redis 没有在事务上增加任何维持原子性的机制,所以Redis 事务的执行并不是原子性的。当事务失败时,Redis 也不会进行任何的重试或者回滚动作。
+
+2、 事务一致性：
+
+带有不正确入队命令的事务不会被执行,也不会影响数据库的一致性。	
+对一个不同类型的 key 执行了错误的操作,那么 Redis 只会将错误包含在事务的结果中,这不会引起事务中断或整个失败,不会影响已执行事务命令的结果,也不会影响后面要执行的事务命令
+
+3、事务隔离性：
+
+Redis 是单进程程序,并且它保证在执行事务时,不会对事务进行中断,事务可以运行直到执行完所有事务队列中的命令为止。
+
+4、事务持久性：不保证持久性
+
+
+键空间通知
+
+事件通过 Redis 的订阅与发布功能（pub/sub）来进行分发， 因此所有支持订阅与发布功能的客户端都可以在无须做任何修改的情况下， 直接使用键空间通知功能。
+
+因为 Redis 目前的订阅与发布功能采取的是发送即忘（fire and forget）策略， 所以如果你的程序需要可靠事件通知（reliable notification of events）， 那么目前的键空间通知可能并不适合你： 当订阅事件的客户端断线时， 它会丢失所有在断线期间分发给它的事件。
+
+
+
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>27、celery</p>
+
+<p>celery调试</p>
+
+<pre><code>from celery.contrib import rdb
+rdb.set_trace()
+</code></pre>
+
+<p>django与celery</p>
+
+<pre><code>python manage.py celery multi start 6 -Q:1-3 push -Q default --loglevel=debug --logfile="logs/celery/%N.log" --pidfile="logs/celery/%N.pid"
+</code></pre>
+
+<p>28、 rq 简单的消息队列</p>
+
+<p>broker 只能是 redis</p>
+
+<p>Job</p>
+
+<p>保存了任务的 id 、所属队列、函数名称、函数的参数、执行结果、执行统计信息等等
+Job 实例的所有信息都保存在一个 Redis 哈希表中，键名格式为 rq:job:<uid> ， uid 一般使用 uuid.uuid4 函数来生成，也可以显式地指定</uid></p>
+
+<p>Queue</p>
+
+<p>每个 Queue 实例都使用 key 属性的值作为列表的键，键名格式为 rq:queue:<name> ， name 属性可以显式地指定，也可以使用默认值 'default' 。
+Queue 以先进先出（FIFO）的方式处理任务： 它使用 rpush 命令将任务 id 放进 Redis 列表； 而 lpop 和 blpop 命令则负责将任务 id 从列表中取出。</name></p>
+
+<p>Worker</p>
+
+<p>Worker 每次从队列中弹出一个 Job 实例，并派生出一个子进程来执行任务，父进程会一直等待到任务结束，或者任务执行超时。</p>
+
+<p>29、rabbitMQ</p>
+
+<p>在AMQP模型中，消息的producer将Message发送给Exchange，Exchange 负责交换和路由，将消息正确地转发给相应的Queue。消息的 Consumer 从 Queue 中读取消息。这个过程是异步的，Producer 和 Consumer 没有直接联系甚至可以不知道彼此的存在。Exchange 如何进行路由的呢？这便依靠 Routing Key，每个消息都有一个 routing Key，而每个 Queue 都可以通过一个 Binding 将自己所感兴趣的 Routing Key 告诉 Exchange，这样 Exchange 便可以将消息正确地转发给相应的Queue</p>
+
+<p>对于exchange的route这个动作，有下面三类：</p>
+
+<ol>
+<li><p>fan-out：不看routing key，直接把消息放到所有注册到exchange上的queue上</p></li>
+<li><p>direct：只把消息放到和routing key有相匹配key的queue上</p></li>
+<li><p>topic：这里的routing key和queue的key的匹配不是完全的匹配，而是一个模糊匹配。所以一个routing key可能可以匹配到多个queue</p></li>
+</ol>
+
+<p>为了防止消息丢失，RabbitMQ提供了消息响应（acknowledgments）。消费者会通过一个ack（响应），告诉RabbitMQ已经收到并处理了某条消息，然后RabbitMQ就会释放并删除这条消息。</p>
+
+<p>如果你没有特意告诉RabbitMQ，那么在它退出或者崩溃的时候，将会丢失所有队列和消息。为了确保信息不会丢失，有两个事情是需要注意的：我们必须把“队列”和“消息”设为持久化。</p>
+
+<p>RabbitMQ没有timeout这个概念，你consumer只要不死，我就不会把message给别人处理（所以如果consumer hang住了，可能要杀了这个进程才能让其它consumer处理这个消息）。acknowledgments可以保证message都被consumer处理。</p>
+
+<p>一个queue上的一个message只能被一个consumer处理
+发布/订阅：n个consumer要都处理某个message，那么需要有n个queue，并且把exchange配制成fan-out。
+一个queue可以绑定多个routing key。</p>
+
+<p>30、redis</p>
+
+<p>1、事务原子性：</p>
+
+<p>单个 Redis 命令的执行是原子性的,但 Redis 没有在事务上增加任何维持原子性的机制,所以Redis 事务的执行并不是原子性的。当事务失败时,Redis 也不会进行任何的重试或者回滚动作。</p>
+
+<p>2、 事务一致性：</p>
+
+<p>带有不正确入队命令的事务不会被执行,也不会影响数据库的一致性。 <br>
+对一个不同类型的 key 执行了错误的操作,那么 Redis 只会将错误包含在事务的结果中,这不会引起事务中断或整个失败,不会影响已执行事务命令的结果,也不会影响后面要执行的事务命令</p>
+
+<p>3、事务隔离性：</p>
+
+<p>Redis 是单进程程序,并且它保证在执行事务时,不会对事务进行中断,事务可以运行直到执行完所有事务队列中的命令为止。</p>
+
+<p>4、事务持久性：不保证持久性</p>
+
+<p>键空间通知</p>
+
+<p>事件通过 Redis 的订阅与发布功能（pub/sub）来进行分发， 因此所有支持订阅与发布功能的客户端都可以在无须做任何修改的情况下， 直接使用键空间通知功能。</p>
+
+<p>因为 Redis 目前的订阅与发布功能采取的是发送即忘（fire and forget）策略， 所以如果你的程序需要可靠事件通知（reliable notification of events）， 那么目前的键空间通知可能并不适合你： 当订阅事件的客户端断线时， 它会丢失所有在断线期间分发给它的事件。</p>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "working-note3.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+31、docker
+
+1. 检查本地是否存在指定的镜像，不存在就从公有仓库下载
+2. 利用镜像创建并启动容器
+3. 分配文件系统，在只读的镜像外面挂载一个可读写层
+4. 从宿主主机配置的网桥接口中桥接一个虚拟接口到容器中
+5. 从地址池分配一个ip地址给容器
+6. 执行用户指定的应用程序
+7. 执行完毕后容器被终止
+
+提交：
+
+`docker commit -m "add zsh git " -a "huangnauh" 9bd734f5250b huang/play:v2`
+
+
+编写完成Dockerfile后可以使用 docker build 来生成镜像
+`docker build -t="huang/play:v3" .` 
+
+dockfile中的指令被一条一条的执行，每一步都创建了一个新的容器，在容器中执行命令并提交修改。最终返回镜像id， 中间步骤所产生的容器都被清理了。
+一个镜像不能超过127层
+
+
+镜像负责运行环境的包装，容器则是运行时的包装
+
+获取镜像 `docker pull`
+
+列出镜像 `docker images`
+
+修改已有镜像创建新镜像 
+```docker commit -m “提交信息” -a "用户信息" 容器ID huang/ubuntu:v1```
+
+载入本地镜像 `docker load < unbuntu_14.04.tar`
+
+导出镜像  `docker save newimage_id > new_image.tar`
+
+移出本地镜像 ` docker rmi  huang/ubuntu:v1`
+
+启动容器 `docker run -t -i ubuntu:14.04  /bin/bash`
+
+-t 让docker分配一个伪tty并绑定到容器的标准输入上
+
+-i 让容器的标准输入保持打开
+
+守护态运行容器 `docker run -d ubuntu:14.04 /bin/sh -c "while true; do echo hello world; sleep 1; done"`
+
+终止容器 `docker stop`
+
+启动已终止容器 `docker start`
+
+查看容器信息 `docker ps`
+
+获取容器的输出信息 `docker logs`
+
+进入容器 `docker attach`   当多个窗口同时 attach 到同一个容器的时候，所有窗口都会同步显示
+
+导出容器 `docker export`
+
+导入容器快照  `cat ubuntu.tar | sudo docker import - test/buntu:v1.0`
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>31、docker</p>
+
+<ol>
+<li>检查本地是否存在指定的镜像，不存在就从公有仓库下载</li>
+<li>利用镜像创建并启动容器</li>
+<li>分配文件系统，在只读的镜像外面挂载一个可读写层</li>
+<li>从宿主主机配置的网桥接口中桥接一个虚拟接口到容器中</li>
+<li>从地址池分配一个ip地址给容器</li>
+<li>执行用户指定的应用程序</li>
+<li>执行完毕后容器被终止</li>
+</ol>
+
+<p>提交：</p>
+
+<p><code>docker commit -m "add zsh git " -a "huangnauh" 9bd734f5250b huang/play:v2</code></p>
+
+<p>编写完成Dockerfile后可以使用 docker build 来生成镜像
+<code>docker build -t="huang/play:v3" .</code> </p>
+
+<p>dockfile中的指令被一条一条的执行，每一步都创建了一个新的容器，在容器中执行命令并提交修改。最终返回镜像id， 中间步骤所产生的容器都被清理了。
+一个镜像不能超过127层</p>
+
+<p>镜像负责运行环境的包装，容器则是运行时的包装</p>
+
+<p>获取镜像 <code>docker pull</code></p>
+
+<p>列出镜像 <code>docker images</code></p>
+
+<p>修改已有镜像创建新镜像 
+<code>docker commit -m “提交信息” -a "用户信息" 容器ID huang/ubuntu:v1</code></p>
+
+<p>载入本地镜像 <code>docker load &lt; unbuntu_14.04.tar</code></p>
+
+<p>导出镜像  <code>docker save newimage_id &gt; new_image.tar</code></p>
+
+<p>移出本地镜像 <code>docker rmi  huang/ubuntu:v1</code></p>
+
+<p>启动容器 <code>docker run -t -i ubuntu:14.04  /bin/bash</code></p>
+
+<p>-t 让docker分配一个伪tty并绑定到容器的标准输入上</p>
+
+<p>-i 让容器的标准输入保持打开</p>
+
+<p>守护态运行容器 <code>docker run -d ubuntu:14.04 /bin/sh -c "while true; do echo hello world; sleep 1; done"</code></p>
+
+<p>终止容器 <code>docker stop</code></p>
+
+<p>启动已终止容器 <code>docker start</code></p>
+
+<p>查看容器信息 <code>docker ps</code></p>
+
+<p>获取容器的输出信息 <code>docker logs</code></p>
+
+<p>进入容器 <code>docker attach</code>   当多个窗口同时 attach 到同一个容器的时候，所有窗口都会同步显示</p>
+
+<p>导出容器 <code>docker export</code></p>
+
+<p>导入容器快照  <code>cat ubuntu.tar | sudo docker import - test/buntu:v1.0</code></p>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "working-note4.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+</body>
+</html>

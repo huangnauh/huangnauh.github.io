@@ -1,0 +1,178 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+40、xpath与css
+
+XPath 是一门用来在XML文件中选择节点的语言，也可以用在HTML上。 CSS 是一门将HTML文档样式化的语言。选择器由它定义，并与特定的HTML元素的样式相关连。
+
+通过特定的 XPath 或者 CSS 表达式来“选择” HTML文件中的某个部分
+
+1. 获取属性  
+`xpath('//base/@href') ` 
+`css('base::attr(href)')`
+2. xpath函数与css部分属性选择器
+`xpath('//a[contains(@href, "image")]/@href')`
+`css('a[href*=image]::attr(href)')`
+3. css后代选择器
+`xpath('//a[contains(@href, "image")]/img/@src')`
+`css('a[href*=image] img::attr(src)')`
+
+41、lxml与re
+
+lxml.html.fromstring 从字符串中解析html，然后利用xpath获取数据
+字符串获取数据也可以使用正则表达式
+例如，re.compile(r'"logoUrl":"(.*?)"', re.S)
+
+42、Scrapy
+
+Item 对象是种简单的容器，保存了爬取到得数据。
+ 
+Scrapy选择器构建于 lxml 库之上
+
+Spider的逻辑：
+
+1. 以初始的URL初始化Request，并设置回调函数。 当该request下载完毕并返回时，将生成response，并作为参数传给该回调函数。
+2. 在回调函数内分析返回的内容，返回 Item 对象或者 Request 或者一个包括二者的可迭代容器。 返回的Request对象之后会经过Scrapy处理，获取相应的内容，并调用设置的callback函数。
+3. 在回调函数内，使用选择器来分析网页内容，并根据分析的数据生成item
+4. 由spider返回的item将被存到数据库(由 Item Pipeline 处理)或使用 Feed exports 存入到文件中。
+
+Link Extractors 是那些目的仅仅是从网页(Response 对象)中抽取最终将会被follow链接的对象｡(Link Extractors在 CrawlSpider 类中使用)
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>40、xpath与css</p>
+
+<p>XPath 是一门用来在XML文件中选择节点的语言，也可以用在HTML上。 CSS 是一门将HTML文档样式化的语言。选择器由它定义，并与特定的HTML元素的样式相关连。</p>
+
+<p>通过特定的 XPath 或者 CSS 表达式来“选择” HTML文件中的某个部分</p>
+
+<ol>
+<li>获取属性 <br>
+<code>xpath('//base/@href')</code> 
+<code>css('base::attr(href)')</code></li>
+<li>xpath函数与css部分属性选择器
+<code>xpath('//a[contains(@href, "image")]/@href')</code>
+<code>css('a[href*=image]::attr(href)')</code></li>
+<li>css后代选择器
+<code>xpath('//a[contains(@href, "image")]/img/@src')</code>
+<code>css('a[href*=image] img::attr(src)')</code></li>
+</ol>
+
+<p>41、lxml与re</p>
+
+<p>lxml.html.fromstring 从字符串中解析html，然后利用xpath获取数据
+字符串获取数据也可以使用正则表达式
+例如，re.compile(r'"logoUrl":"(.*?)"', re.S)</p>
+
+<p>42、Scrapy</p>
+
+<p>Item 对象是种简单的容器，保存了爬取到得数据。</p>
+
+<p>Scrapy选择器构建于 lxml 库之上</p>
+
+<p>Spider的逻辑：</p>
+
+<ol>
+<li>以初始的URL初始化Request，并设置回调函数。 当该request下载完毕并返回时，将生成response，并作为参数传给该回调函数。</li>
+<li>在回调函数内分析返回的内容，返回 Item 对象或者 Request 或者一个包括二者的可迭代容器。 返回的Request对象之后会经过Scrapy处理，获取相应的内容，并调用设置的callback函数。</li>
+<li>在回调函数内，使用选择器来分析网页内容，并根据分析的数据生成item</li>
+<li>由spider返回的item将被存到数据库(由 Item Pipeline 处理)或使用 Feed exports 存入到文件中。</li>
+</ol>
+
+<p>Link Extractors 是那些目的仅仅是从网页(Response 对象)中抽取最终将会被follow链接的对象｡(Link Extractors在 CrawlSpider 类中使用)</p>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "working-note6.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+</body>
+</html>
